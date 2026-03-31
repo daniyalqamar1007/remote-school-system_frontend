@@ -10,10 +10,17 @@ import { Eye, EyeOff, LogIn } from 'lucide-react';
 import Image from 'next/image';
 import PasswordChangePopup from '@/components/PasswordChangePopup';
 import ForgotPasswordModal from '@/components/ForgotPasswordModal';
-import RouteGuard from '@/components/RouteGuard';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SRS_SERVER || 'http://localhost:3014';
+const resolveApiBaseUrl = () => {
+  const raw = process.env.NEXT_PUBLIC_SRS_SERVER;
+  if (!raw || raw === 'undefined' || raw === 'null') {
+    return 'http://localhost:3014';
+  }
+  return raw;
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 function LoginPageContent() {
   const [email, setEmail] = useState('');
@@ -658,9 +665,5 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <RouteGuard allowUnauthenticated>
-      <LoginPageContent />
-    </RouteGuard>
-  );
+  return <LoginPageContent />;
 }

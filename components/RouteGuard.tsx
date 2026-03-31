@@ -172,6 +172,13 @@ export default function RouteGuard({
         setIsChecking(false)
       } catch (error) {
         console.error('Error in RouteGuard:', error)
+        if (pathname === '/login' || allowUnauthenticated) {
+          setIsAuthorized(true)
+          setIsChecking(false)
+          return
+        }
+        setIsAuthorized(false)
+        setIsChecking(false)
         router.replace('/login')
       }
     }

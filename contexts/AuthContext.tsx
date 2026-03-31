@@ -8,6 +8,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PasswordChangePopup from '@/components/PasswordChangePopup';
 
+const getApiBaseUrl = () => {
+  const raw = process.env.NEXT_PUBLIC_SRS_SERVER;
+  if (!raw || raw === 'undefined' || raw === 'null') {
+    return 'http://localhost:3014';
+  }
+  return raw;
+};
+
 interface User {
   id: string;
   email: string;
@@ -84,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (token && userInfo) {
         // Verify token is still valid
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/auth/profile`, {
+        const response = await fetch(`${getApiBaseUrl()}/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -117,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/auth/login`, {
+    const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -213,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshTokenValue = localStorage.getItem('refreshToken');
       
       if (refreshTokenValue) {
-        await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/auth/logout`, {
+        await fetch(`${getApiBaseUrl()}/auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -255,7 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/auth/refresh`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -330,7 +338,7 @@ export function useAuth() {
           // If profile is missing, fetch it from the backend
           if (!userData.profile) {
             try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/auth/profile`, {
+              const response = await fetch(`${getApiBaseUrl()}/auth/profile`, {
                 headers: {
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json',
