@@ -279,12 +279,12 @@ export default function SuperAdminSidebar({
           <div className="flex h-16 shrink-0 items-center">
             <Image
               src="/Logo/srs.png"
-              alt="SRS Super Admin Logo"
+              alt="RSS Super Admin Logo"
               width={44}
               height={32}
               className="h-12 w-12 rounded-full"
             />
-            <span className="ml-2 text-xl font-bold text-gray-900">SRS Super Admin</span>
+            <span className="ml-2 text-xl font-bold text-gray-900">RSS Super Admin</span>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -405,12 +405,12 @@ export default function SuperAdminSidebar({
             <div className="flex items-center">
               <Image
                 src="/Logo/srs.png"
-                alt="SRS Super Admin Logo"
+                alt="RSS Super Admin Logo"
                 width={44}
                 height={32}
                 className="h-12 w-12 rounded-full"
               />
-              <span className="ml-2 text-xl font-bold text-gray-900">SRS Super Admin</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">RSS Super Admin</span>
             </div>
             <button
               type="button"

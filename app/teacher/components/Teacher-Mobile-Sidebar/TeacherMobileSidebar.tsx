@@ -46,8 +46,8 @@ const TeacherMobileSidebar = ({isSidebarOpen,setIsSidebarOpen}:{isSidebarOpen:bo
 
     {/* Logo for Mobile */}
     <div className="flex flex-1 items-center gap-x-3">
-      <Image src={'/Logo/srs.png'} alt='srs logo' height={8} width={8}  className="h-8 w-8 rounded-full" />
-      <span className="text-xl font-semibold">SRS Teacher</span>
+      <Image src={'/Logo/srs.png'} alt='rss logo' height={8} width={8}  className="h-8 w-8 rounded-full" />
+      <span className="text-xl font-semibold">RSS Teacher</span>
     </div>
 
     {/* Mobile Profile Menu */}

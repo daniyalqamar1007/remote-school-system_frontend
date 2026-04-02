@@ -7,7 +7,7 @@ const Sidebar = () => {
     {/* Sidebar */}
     <aside className="w-64 bg-white shadow-md">
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-blue-600">SRS Dashboard</h1>
+          <h1 className="text-2xl font-bold text-blue-600">RSS Dashboard</h1>
         </div>
         <nav className="mt-6">
           <a className="flex items-center py-2 px-4 bg-blue-100 text-blue-700" >

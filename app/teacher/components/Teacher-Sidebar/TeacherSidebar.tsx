@@ -120,12 +120,12 @@ const TeacherSidebar = ({ isSidebarOpen, setIsSidebarOpen }: { isSidebarOpen: bo
           <Link href="/teacher/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image
               src="/Logo/srs.png"
-              alt="SRS Teacher Logo"
+              alt="RSS Teacher Logo"
               width={44}
               height={32}
               className="h-12 w-12  rounded-full"
             />
-            <span className="text-xl font-semibold">SRS Teacher</span>
+            <span className="text-xl font-semibold">RSS Teacher</span>
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
             <X className="h-6 w-6" />

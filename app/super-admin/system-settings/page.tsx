@@ -94,7 +94,7 @@ export default function SystemSettingsPage() {
 
   const getDefaultSettings = () => ({
     general: [
-      { key: 'system_name', name: 'System Name', value: 'Student Revelation System', category: 'general', description: 'Name of the system' },
+      { key: 'system_name', name: 'System Name', value: 'Remote School System', category: 'general', description: 'Name of the system' },
       { key: 'system_version', name: 'System Version', value: '1.0.0', category: 'general', description: 'Current version' },
       { key: 'time_zone', name: 'Time Zone', value: 'UTC', category: 'general', description: 'Default timezone' },
       { key: 'date_format', name: 'Date Format', value: 'MM/DD/YYYY', category: 'general', description: 'Date display format' },
@@ -109,7 +109,7 @@ export default function SystemSettingsPage() {
       { key: 'smtp_password', name: 'SMTP Password', value: '', category: 'email', description: 'Email password' },
       { key: 'smtp_secure', name: 'Use SSL/TLS', value: true, category: 'email', description: 'Enable secure connection' },
       { key: 'from_email', name: 'From Email', value: '', category: 'email', description: 'Default sender email' },
-      { key: 'from_name', name: 'From Name', value: 'SRS System', category: 'email', description: 'Default sender name' }
+      { key: 'from_name', name: 'From Name', value: 'RSS System', category: 'email', description: 'Default sender name' }
     ],
     security: [
       { key: 'password_min_length', name: 'Min Password Length', value: 8, category: 'security', description: 'Minimum password length' },

@@ -110,7 +110,7 @@ export default function SelectDashboardPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md border border-gray-100">
-            <Image src="/Logo/srs.png" alt="SRS Logo" width={56} height={56} />
+            <Image src="/Logo/srs.png" alt="RSS Logo" width={56} height={56} />
           </div>
           <CardTitle>Which dashboard do you want to access?</CardTitle>
           <p className="text-sm text-muted-foreground">
