@@ -47,6 +47,23 @@ interface School {
   name: string
 }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesTeacherSearch = (teacher: Teacher, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    teacher.firstName || '',
+    teacher.lastName || '',
+    teacher.email || '',
+    teacher.employeeId || '',
+    teacher.schoolId?.name || ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function SuperAdminTeacherRolesPage() {
   const router = useRouter()
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -87,6 +104,10 @@ export default function SuperAdminTeacherRolesPage() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken')
+      const normalizedSearch = normalizeSearchText(search)
+      const hasMultiWordSearch = normalizedSearch.includes(' ')
+      // Use first token for backend query and apply full tokenized matching in frontend.
+      const apiSearchQuery = hasMultiWordSearch ? normalizedSearch.split(' ')[0] : normalizedSearch
 
       if (!token) {
         toast.error('Authentication required. Please log in again.')
@@ -99,8 +120,8 @@ export default function SuperAdminTeacherRolesPage() {
         limit
       }
 
-      if (search.trim()) {
-        params.search = search.trim()
+      if (apiSearchQuery) {
+        params.search = apiSearchQuery
       }
 
       if (schoolId && schoolId !== 'all' && schoolId.trim()) {
@@ -117,12 +138,23 @@ export default function SuperAdminTeacherRolesPage() {
       if (response.data.success && response.data.data) {
         const { teachers: teachersData, pagination } = response.data.data
 
-        setTeachers(teachersData || [])
+        const parsedTeachers = teachersData || []
+        const filteredTeachers = normalizedSearch
+          ? parsedTeachers.filter((teacher: Teacher) => matchesTeacherSearch(teacher, normalizedSearch))
+          : parsedTeachers
+
+        setTeachers(filteredTeachers)
 
         // Update pagination state
-        setCurrentPage(pagination.currentPage || page)
-        setTotalPages(pagination.totalPages || 1)
-        setTotalTeachers(pagination.totalCount || 0)
+        if (hasMultiWordSearch) {
+          setCurrentPage(1)
+          setTotalPages(1)
+          setTotalTeachers(filteredTeachers.length)
+        } else {
+          setCurrentPage(pagination.currentPage || page)
+          setTotalPages(pagination.totalPages || 1)
+          setTotalTeachers(pagination.totalCount || 0)
+        }
         setPageSize(pagination.limit || limit)
       } else {
         setTeachers([])
