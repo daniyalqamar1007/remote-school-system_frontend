@@ -76,6 +76,13 @@ interface CreatePermissionForm {
   description: string
 }
 
+const isValidPermission = (permission: unknown): permission is Permission => {
+  if (!permission || typeof permission !== "object") return false
+
+  const p = permission as Permission
+  return typeof p._id === "string" && typeof p.name === "string"
+}
+
 export default function RolesPermissions() {
   const [roles, setRoles] = useState<Role[]>([])
   const [permissions, setPermissions] = useState<Permission[]>([])
@@ -123,7 +130,15 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setRoles(Array.isArray(data) ? data : data?.data ?? [])
+        const rolesData = Array.isArray(data) ? data : data?.data ?? []
+        const normalizedRoles = (Array.isArray(rolesData) ? rolesData : []).map((role) => ({
+          ...role,
+          permissions: Array.isArray(role?.permissions)
+            ? role.permissions.filter(isValidPermission)
+            : [],
+        }))
+
+        setRoles(normalizedRoles)
       } else {
         toast.error("Failed to fetch roles")
       }
@@ -140,7 +155,9 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/permissions`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setPermissions(Array.isArray(data) ? data : data?.data ?? [])
+        const permissionsData = Array.isArray(data) ? data : data?.data ?? []
+        const normalizedPermissions = (Array.isArray(permissionsData) ? permissionsData : []).filter(isValidPermission)
+        setPermissions(normalizedPermissions)
       } else {
         toast.error("Failed to fetch permissions")
       }
