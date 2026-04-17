@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -89,6 +90,14 @@ interface NotificationTemplate {
 }
 
 export default function SystemAlertsPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/super-admin/dashboard')
+  }, [router])
+
+  return null
+
   const [alerts, setAlerts] = useState<SystemAlert[]>([])
   const [alertRules, setAlertRules] = useState<AlertRule[]>([])
   const [templates, setTemplates] = useState<NotificationTemplate[]>([])
