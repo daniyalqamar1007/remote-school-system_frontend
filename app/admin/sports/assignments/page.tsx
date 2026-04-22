@@ -22,7 +22,7 @@ import {
   Loader2
 } from 'lucide-react'
 import Link from 'next/link'
-import { sportsApi, studentsApi, adminApi, nurseApi } from '@/lib/api'
+import { sportsApi, studentsApi, adminApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { useSearchParams } from 'next/navigation'
 
@@ -712,12 +712,8 @@ export default function SportsAssignmentsPage() {
 function AssignStudentModal({ programs, students, onClose, onAssign }: any) {
   const [selectedStudent, setSelectedStudent] = useState('')
   const [selectedProgram, setSelectedProgram] = useState('')
-  const [healthRecord, setHealthRecord] = useState<any>(null)
-  const [healthStatus, setHealthStatus] = useState<string>('')
-  const [isHealthy, setIsHealthy] = useState<boolean>(false)
   const [medicalNotes, setMedicalNotes] = useState('')
   const [saving, setSaving] = useState(false)
-  const [loadingHealth, setLoadingHealth] = useState(false)
 
   // Debug: Log students prop
   React.useEffect(() => {
@@ -732,103 +728,10 @@ function AssignStudentModal({ programs, students, onClose, onAssign }: any) {
     }
   }, [students])
 
-  React.useEffect(() => {
-    if (selectedStudent) {
-      fetchHealthRecord(selectedStudent)
-    } else {
-      setHealthRecord(null)
-      setHealthStatus('')
-      setIsHealthy(false)
-    }
-  }, [selectedStudent])
-
-  const fetchHealthRecord = async (studentId: string) => {
-    try {
-      setLoadingHealth(true)
-      const healthData = await nurseApi.healthRecords.getByStudentId(studentId)
-      
-      // Backend returns { message: 'No health record found', studentId, academicYear } when no record exists
-      // Check if this is a "no record" response - must have _id to be a valid record
-      const isNoRecordResponse = !healthData || 
-          healthData === null || 
-          healthData?.message === 'No health record found' ||
-          healthData?.message === 'Health record not found' ||
-          (!healthData._id && !healthData.studentId && healthData.message) ||
-          (healthData.message && !healthData._id)
-      
-      if (isNoRecordResponse) {
-        console.log('No health record found for student:', studentId, '- Setting to No Record')
-        setHealthRecord(null)
-        setHealthStatus('No Record')
-        setIsHealthy(false) // Disable assignment when no health record
-        return
-      }
-
-      // Critical check: A valid health record MUST have _id
-      // If it doesn't have _id, it's not a valid record (even if it has other fields)
-      if (!healthData._id) {
-        console.log('Invalid health record - missing _id:', healthData, '- Setting to No Record')
-        setHealthRecord(null)
-        setHealthStatus('No Record')
-        setIsHealthy(false) // Disable assignment when invalid record
-        return
-      }
-
-      setHealthRecord(healthData)
-
-      // Calculate health status using EXACT same logic as backend nurse.service.ts getHealthStatus method
-      // This ensures consistency with what nurse module shows
-      const getHealthStatus = (healthRecord: any): string => {
-        // Double check - if no _id, it's not a valid record
-        if (!healthRecord || !healthRecord._id) return 'No Record'
-
-        const activeAlerts = healthRecord.healthAlerts?.filter((alert: any) => alert.isActive) || []
-      const highPriorityAlerts = activeAlerts.filter((alert: any) =>
-        alert.severity === 'high' || alert.severity === 'critical'
-      )
-
-        if (highPriorityAlerts.length > 0) return 'High Risk'
-        if (activeAlerts.length > 0) return 'Has Alerts'
-
-        const activeMeds = healthRecord.medicationLog?.filter((med: any) => med.isActive) || []
-        if (activeMeds.length > 0) return 'On Medication'
-
-        return 'Healthy'
-      }
-
-      const status = getHealthStatus(healthData)
-      
-      // Only "Healthy" and "On Medication" allow assignment
-      // "High Risk", "Has Alerts", and "No Record" disable assignment
-      const healthy = status === 'Healthy' || status === 'On Medication'
-
-      setHealthStatus(status)
-      setIsHealthy(healthy) // This enables the button when status is "Healthy" or "On Medication"
-    } catch (error: any) {
-      console.error('Error fetching health record:', error)
-      // If error fetching health record, treat as no record
-      setHealthRecord(null)
-      setHealthStatus('No Record')
-      setIsHealthy(false) // Disable assignment on error
-    } finally {
-      setLoadingHealth(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedStudent || !selectedProgram) {
       toast.error('Please select both student and program')
-      return
-    }
-
-    // Check if student is healthy before allowing assignment
-    if (!isHealthy) {
-      if (healthStatus === 'No Record') {
-        toast.error('Student cannot be assigned. No health record found. The nurse must create a health record first.')
-      } else {
-      toast.error(`Student cannot be assigned. Health status: ${healthStatus}. Student must be healthy to participate in sports.`)
-      }
       return
     }
 
@@ -848,9 +751,6 @@ function AssignStudentModal({ programs, students, onClose, onAssign }: any) {
       setSelectedStudent('')
       setSelectedProgram('')
       setMedicalNotes('')
-      setHealthRecord(null)
-      setHealthStatus('')
-      setIsHealthy(false)
     } catch (error: any) {
       console.error('Error assigning student:', error)
       // Error is already handled in handleAssignStudent, modal stays open on error
@@ -915,111 +815,20 @@ function AssignStudentModal({ programs, students, onClose, onAssign }: any) {
             </div>
           </div>
 
-          {/* Health Status Section */}
-          {selectedStudent && (
-            <div className="border-t pt-4">
-              <h4 className="text-md font-medium text-gray-800 mb-3">Health Status</h4>
-              
-              {loadingHealth ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
-                  <p className="text-sm text-gray-600 mt-2">Checking health status...</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className={`p-3 rounded-lg border-2 ${
-                    isHealthy 
-                      ? 'bg-green-50 border-green-200' 
-                      : healthStatus === 'No Record'
-                      ? 'bg-yellow-50 border-yellow-200'
-                      : 'bg-red-50 border-red-200'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={`font-semibold ${
-                          isHealthy ? 'text-green-800' : healthStatus === 'No Record' ? 'text-yellow-800' : 'text-red-800'
-                        }`}>
-                          Health Status: {healthStatus}
-                        </p>
-                        {healthStatus === 'No Record' ? (
-                          <p className="text-sm text-yellow-700 mt-1">
-                            ⚠️ No health record found. The nurse has not created a health record for this student.
-                            <span className="block text-xs text-yellow-600 mt-1 font-medium">
-                              Student cannot be assigned until a health record is created by the nurse.
-                              </span>
-                          </p>
-                        ) : healthStatus === 'High Risk' ? (
-                          <p className="text-sm text-red-700 mt-1">
-                            ✗ Student has high or critical priority health alerts. Cannot be assigned to sports.
-                          </p>
-                        ) : healthStatus === 'Has Alerts' ? (
-                          <p className="text-sm text-red-700 mt-1">
-                            ✗ Student has active health alerts. Cannot be assigned to sports.
-                          </p>
-                        ) : healthStatus === 'On Medication' ? (
-                          <p className="text-sm text-green-700 mt-1">
-                            ✓ Student is on medication but can be assigned to sports
-                          </p>
-                        ) : (
-                          <p className="text-sm text-green-700 mt-1">
-                            ✓ Student is healthy and can be assigned to sports
-                          </p>
-                        )}
-                      </div>
-                      {isHealthy ? (
-                        <CheckCircle className="w-6 h-6 text-green-600" />
-                      ) : healthStatus === 'No Record' ? (
-                        <XCircle className="w-6 h-6 text-yellow-600" />
-                      ) : (
-                        <XCircle className="w-6 h-6 text-red-600" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  {healthRecord && healthRecord.healthAlerts?.filter((alert: any) => alert.isActive).length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <p className="text-yellow-800 text-sm font-medium mb-2">
-                        ⚠️ Active Health Alerts ({healthRecord.healthAlerts.filter((alert: any) => alert.isActive).length}):
-                      </p>
-                      <ul className="list-disc list-inside text-sm text-yellow-700 space-y-1">
-                        {healthRecord.healthAlerts
-                          .filter((alert: any) => alert.isActive)
-                          .slice(0, 3)
-                          .map((alert: any, index: number) => (
-                            <li key={index}>
-                              <span className="font-medium">{alert.title || alert.type || 'Alert'}:</span> {alert.description || 'No description'}
-                              {alert.severity && (
-                                <Badge variant={alert.severity === 'high' || alert.severity === 'critical' ? 'destructive' : 'default'} className="ml-2 text-xs">
-                                  {alert.severity}
-                                </Badge>
-                              )}
-                            </li>
-                          ))}
-                        {healthRecord.healthAlerts.filter((alert: any) => alert.isActive).length > 3 && (
-                          <li className="text-yellow-600">
-                            +{healthRecord.healthAlerts.filter((alert: any) => alert.isActive).length - 3} more alerts
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Medical Notes (Optional)
-                </label>
-                <textarea
-                  value={medicalNotes}
-                  onChange={(e) => setMedicalNotes(e.target.value)}
-                  placeholder="Add any medical notes or considerations for this assignment..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  rows={3}
-                />
-              </div>
+          <div className="border-t pt-4">
+            <div className="mt-0">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Medical Notes (Optional)
+              </label>
+              <textarea
+                value={medicalNotes}
+                onChange={(e) => setMedicalNotes(e.target.value)}
+                placeholder="Add any medical notes or considerations for this assignment..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                rows={3}
+              />
             </div>
-          )}
+          </div>
 
           <div className="flex gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={saving}>
@@ -1027,7 +836,7 @@ function AssignStudentModal({ programs, students, onClose, onAssign }: any) {
             </Button>
             <Button 
               type="submit" 
-              disabled={saving || !selectedStudent || !selectedProgram || !isHealthy || loadingHealth} 
+              disabled={saving || !selectedStudent || !selectedProgram} 
               className="flex-1"
             >
               {saving ? 'Assigning...' : 'Assign Student'}
