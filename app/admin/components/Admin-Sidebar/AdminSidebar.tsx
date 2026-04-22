@@ -89,16 +89,6 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }: { isSidebarOpen: bool
       icon: UserPlus,
     },
     {
-      name: "Manage Nurses",
-      href: "/admin/manage-nurses",
-      icon: UserPlus,
-    },
-    {
-      name: "Secretary",
-      href: "/admin/secretary",
-      icon: UserPlus,
-    },
-    {
       name: "Honor Roll Management",
       href: "/admin/honor-roll",
       icon: Award,
