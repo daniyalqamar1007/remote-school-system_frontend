@@ -57,6 +57,11 @@ export default function ParentPortal({
       icon: Book,
     },
     {
+      name: "Fees",
+      href: "/parent/fees",
+      icon: FileText,
+    },
+    {
       name: "Class Schedule",
       href: "/parent/schedule",
       icon: FileText,

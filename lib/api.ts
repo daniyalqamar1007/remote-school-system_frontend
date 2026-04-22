@@ -1924,6 +1924,131 @@ export const nurseApi = {
   }
 }
 
+// ==================== FEE API ====================
+export const feeApi = {
+  createPolicy: async (payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  getPolicies: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/policies?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  updatePolicy: async (id: string, payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  deactivatePolicy: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies/${id}/deactivate`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  upsertDiscount: async (payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/discounts`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  getDiscounts: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/discounts?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  generateInstallments: async (payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/installments/generate`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  getInstallments: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/installments?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  recordPayment: async (installmentId: string, payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/installments/${installmentId}/payments`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  manualClearance: async (installmentId: string, payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/installments/${installmentId}/manual-clearance`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  runReminders: async (payload: { schoolId?: string } = {}) => {
+    const response = await fetch(`${API_BASE_URL}/fee/reminders/run`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  getMyInstallments: async (academicYear?: string) => {
+    const params = new URLSearchParams()
+    if (academicYear) params.set('academicYear', academicYear)
+    const response = await fetch(`${API_BASE_URL}/fee/my/installments?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getMySummary: async (academicYear?: string) => {
+    const params = new URLSearchParams()
+    if (academicYear) params.set('academicYear', academicYear)
+    const response = await fetch(`${API_BASE_URL}/fee/my/summary?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+}
+
 export default {
   emailTemplatesApi,
   scheduledJobsApi,
@@ -1940,5 +2065,6 @@ export default {
   scheduleApi,
   studentsApi,
   adminApi,
-  nurseApi
+  nurseApi,
+  feeApi
 }

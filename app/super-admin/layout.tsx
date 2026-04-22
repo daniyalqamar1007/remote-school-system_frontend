@@ -90,6 +90,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     // { name: "Reports", href: "/super-admin/reports", icon: FileText },
     // { name: "Report Builder", href: "/super-admin/report-builder", icon: BarChart3 },
     { name: "Scheduled Jobs", href: "/super-admin/scheduled-jobs", icon: Clock },
+    { name: "Fee Management", href: "/super-admin/fee-management", icon: FileText },
     { name: "Discipline Management", href: "/super-admin/discipline", icon: AlertTriangle },
     { name: "Lesson Plan Approval", href: "/super-admin/lesson-plan-approval", icon: FileCheck },
    

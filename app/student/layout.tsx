@@ -51,6 +51,11 @@ export default function TeachersPortal({
       icon: Plus,
     },
     {
+      name: "Fees",
+      href: "/student/fees",
+      icon: FileText,
+    },
+    {
       name: "Classes Schedule",
       href: "/student/schedule",
       icon: FileText,
