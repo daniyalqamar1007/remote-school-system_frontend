@@ -119,17 +119,17 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         { name: "Reports", href: "/super-admin/clubs/reports" }
       ]
     },
-    { name: "Access Control", href: "/super-admin/access-control", icon: Shield },
-    { name: "Session Management", href: "/super-admin/session-management", icon: Users },
-    { name: "System Monitoring", href: "/super-admin/system-monitoring", icon: Activity },
+    // { name: "Access Control", href: "/super-admin/access-control", icon: Shield },
+    // { name: "Session Management", href: "/super-admin/session-management", icon: Users },
+    // { name: "System Monitoring", href: "/super-admin/system-monitoring", icon: Activity },
     { name: "System Settings", href: "/super-admin/system-settings", icon: Globe },
     { name: "Email Templates", href: "/super-admin/email-templates", icon: Mail },
     { name: "Roles & Permissions", href: "/super-admin/roles", icon: Shield },
     { name: "Academic Terms", href: "/super-admin/academic-terms", icon: Calendar },
     { name: "Rollover Management", href: "/super-admin/rollover-management", icon: RotateCw },
-     { name: "System Alerts", href: "/super-admin/system-alerts", icon: Bell },
-    { name: "Certificate Management", href: "/super-admin/certificate-management", icon: ShieldCheck },
-    { name: "Integration Management", href: "/super-admin/integration-management", icon: Plug },
+    // { name: "System Alerts", href: "/super-admin/system-alerts", icon: Bell },
+    // { name: "Certificate Management", href: "/super-admin/certificate-management", icon: ShieldCheck },
+    // { name: "Integration Management", href: "/super-admin/integration-management", icon: Plug },
     { name: "Demo Videos", href: "/super-admin/demo-videos", icon: Video },
   ]
 

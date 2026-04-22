@@ -86,7 +86,7 @@ export default function SystemSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
-  const [activeTab, setActiveTab] = useState('general')
+  const [activeTab, setActiveTab] = useState('branding')
 
   useEffect(() => {
     fetchSettings()
@@ -460,8 +460,8 @@ export default function SystemSettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="general" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-1">
+          {/* <TabsTrigger value="general" className="flex items-center space-x-2">
             {getTabIcon('general')}
             <span>General</span>
           </TabsTrigger>
@@ -472,22 +472,22 @@ export default function SystemSettingsPage() {
           <TabsTrigger value="security" className="flex items-center space-x-2">
             {getTabIcon('security')}
             <span>Security</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="branding" className="flex items-center space-x-2">
             {getTabIcon('branding')}
             <span>Branding</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center space-x-2">
+          {/* <TabsTrigger value="notifications" className="flex items-center space-x-2">
             {getTabIcon('notifications')}
             <span>Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="integrations" className="flex items-center space-x-2">
             {getTabIcon('integrations')}
             <span>Integrations</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
-        <TabsContent value="general">
+        {/* <TabsContent value="general">
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
@@ -497,9 +497,9 @@ export default function SystemSettingsPage() {
               {settings.general.map((setting) => renderSetting(setting, 'general'))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="email">
+        {/* <TabsContent value="email">
           <Card>
             <CardHeader>
               <CardTitle>Email Configuration</CardTitle>
@@ -515,9 +515,9 @@ export default function SystemSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="security">
+        {/* <TabsContent value="security">
           <Card>
             <CardHeader>
               <CardTitle>Security Settings</CardTitle>
@@ -527,7 +527,7 @@ export default function SystemSettingsPage() {
               {settings.security.map((setting) => renderSetting(setting, 'security'))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="branding">
           <Card>
@@ -541,7 +541,7 @@ export default function SystemSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
+        {/* <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle>Notification Settings</CardTitle>
@@ -551,9 +551,9 @@ export default function SystemSettingsPage() {
               {settings.notifications.map((setting) => renderSetting(setting, 'notifications'))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="integrations">
+        {/* <TabsContent value="integrations">
           <Card>
             <CardHeader>
               <CardTitle>Integrations & Services</CardTitle>
@@ -563,7 +563,7 @@ export default function SystemSettingsPage() {
               {settings.integrations.map((setting) => renderSetting(setting, 'integrations'))}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   )
