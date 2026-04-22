@@ -501,7 +501,12 @@ export default function RolesPermissions() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedRole(role)
+                                setSelectedRole({
+                                  ...role,
+                                  permissions: Array.isArray(role.permissions)
+                                    ? role.permissions.filter(isValidPermission)
+                                    : [],
+                                })
                                 setIsEditRoleDialogOpen(true)
                               }}
                               disabled={role.isSystemRole}
