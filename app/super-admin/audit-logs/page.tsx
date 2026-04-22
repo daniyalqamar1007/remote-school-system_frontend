@@ -245,7 +245,7 @@ export default function AuditLogsPage() {
         <div>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Activity Logs</h2>
           <p className="text-muted-foreground">
-            Track all system activities from all roles (Admin, Teacher, Nurse, etc.)
+            Track all system activities from all roles (Admin, Teacher etc.)
           </p>
         </div>
       </div>
@@ -276,8 +276,6 @@ export default function AuditLogsPage() {
                   <SelectItem value="TEACHER">Teacher</SelectItem>
                   <SelectItem value="STUDENT">Student</SelectItem>
                   <SelectItem value="PARENT">Parent</SelectItem>
-                  <SelectItem value="NURSE">Nurse</SelectItem>
-                  <SelectItem value="SECRETARY">Secretary</SelectItem>
                 </SelectContent>
               </Select>
             </div>

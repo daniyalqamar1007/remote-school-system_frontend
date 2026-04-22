@@ -35,6 +35,22 @@ interface Admin {
   createdAt?: string
 }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesAdminSearch = (admin: Admin, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    admin.firstName || '',
+    admin.lastName || '',
+    admin.email || '',
+    admin.phone || ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function AdminsTable() {
   const [admins, setAdmins] = useState<Admin[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,10 +71,14 @@ export default function AdminsTable() {
       setLoading(true)
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('authToken')
       const base = `${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/manage/super-admins`
+      const normalizedQuery = normalizeSearchText(query)
+      const hasMultiWordQuery = normalizedQuery.includes(' ')
+      // Use the first token for API search and apply exact multi-word matching on client.
+      const apiSearchQuery = hasMultiWordQuery ? normalizedQuery.split(' ')[0] : normalizedQuery
       const params = new URLSearchParams()
       params.set('page', String(page))
       params.set('limit', String(pageLimit))
-      if (query.trim()) params.set('search', query.trim())
+      if (apiSearchQuery) params.set('search', apiSearchQuery)
       const url = `${base}?${params.toString()}`
       const response = await axios.get(url, {
         headers: {
@@ -68,10 +88,19 @@ export default function AdminsTable() {
       })
       const list = response.data?.data?.admins || []
       const pg = response.data?.data?.pagination || {}
-      setAdmins(Array.isArray(list) ? list : [])
-      setCurrentPage(pg.currentPage || page)
-      setTotalPages(pg.totalPages || 1)
-      setTotalCount(pg.totalCount || 0)
+      const parsedList: Admin[] = Array.isArray(list) ? list : []
+      const filteredList = normalizedQuery ? parsedList.filter((admin) => matchesAdminSearch(admin, normalizedQuery)) : parsedList
+
+      setAdmins(filteredList)
+      if (hasMultiWordQuery) {
+        setCurrentPage(1)
+        setTotalPages(1)
+        setTotalCount(filteredList.length)
+      } else {
+        setCurrentPage(pg.currentPage || page)
+        setTotalPages(pg.totalPages || 1)
+        setTotalCount(pg.totalCount || 0)
+      }
       setLimit(pg.limit || pageLimit)
     } catch (error) {
       console.error("Error fetching admins:", error)
@@ -169,7 +198,7 @@ export default function AdminsTable() {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <Input
-          placeholder="Search super admins by email..."
+          placeholder="Search super admins by name or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full sm:max-w-sm"

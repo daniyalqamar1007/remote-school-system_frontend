@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,6 @@ import axios from 'axios'
 import AddParentModal from './Add-parent/AddParent'
 import EditParentModal from './Edit-parent/EditParent'
 import ResetPasswordModal from './Reset-password/ResetPassword'
-
 // Simple debounce function
 const debounce = (func: Function, wait: number) => {
   let timeout: NodeJS.Timeout
@@ -44,6 +43,36 @@ interface Parent {
 }
 
 type School = { _id: string; name: string; schoolCode?: string }
+
+type ParentsApiPayload = {
+  parents?: Parent[]
+  pagination?: {
+    currentPage?: number
+    totalPages?: number
+    totalCount?: number
+    limit?: number
+  }
+}
+
+const normalizeText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesSearchTerm = (parent: Parent, search: string) => {
+  const normalizedSearch = normalizeText(search)
+  if (!normalizedSearch) {
+    return true
+  }
+
+  const searchableText = normalizeText([
+    parent.firstName,
+    parent.lastName,
+    parent.email,
+    parent.phone || '',
+    parent.gender || '',
+    parent.parentType || ''
+  ].join(' '))
+
+  return normalizedSearch.split(' ').every((term) => searchableText.includes(term))
+}
 
 export default function ManageParentsPage() {
   const [parents, setParents] = useState<Parent[]>([])
@@ -75,15 +104,20 @@ export default function ManageParentsPage() {
   // Reset Password Modal state
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false)
   const [parentToResetPassword, setParentToResetPassword] = useState<Parent | null>(null)
+  const fetchParentsRef = useRef<((...args: any[]) => Promise<void>) | null>(null)
 
   const router = useRouter()
 
   useEffect(() => {
-    fetchParents()
-    fetchSchools()
+    const initialize = async () => {
+      const schoolList = await fetchSchools()
+      fetchParents(1, pageSize, searchTerm, genderFilter, parentTypeFilter, selectedSchoolId, schoolList)
+    }
+
+    initialize()
   }, [])
 
-  const fetchSchools = async () => {
+  const fetchSchools = async (): Promise<School[]> => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken')
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/schools`, {
@@ -92,17 +126,28 @@ export default function ManageParentsPage() {
         },
       })
       const list = response.data?.data?.schools || response.data?.data || []
-      setSchools(Array.isArray(list) ? list : [])
+      const normalized = Array.isArray(list) ? list : []
+      setSchools(normalized)
+      return normalized
     } catch (error) {
       console.error('Error fetching schools:', error)
       setSchools([])
+      return []
     }
   }
 
-  const fetchParents = async (page = 1, limit = 5, search = '', gender = 'all', parentType = 'all', schoolId = '') => {
+  const fetchParents = async (
+    page = 1,
+    limit = 5,
+    search = '',
+    gender = 'all',
+    parentType = 'all',
+    schoolId = '',
+    schoolsOverride?: School[]
+  ) => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token')
 
       const params: any = {
         page,
@@ -125,6 +170,67 @@ export default function ManageParentsPage() {
         params.schoolId = schoolId.trim()
       }
 
+      // For "All Schools", aggregate results by querying each school and combining them.
+      if (!schoolId?.trim()) {
+        const sourceSchools = (schoolsOverride && schoolsOverride.length > 0 ? schoolsOverride : schools)
+          .filter((school) => school?._id)
+
+        if (sourceSchools.length > 0) {
+          const requestParams = {
+            ...(gender && gender !== 'all' && { gender }),
+            ...(parentType && parentType !== 'all' && { parentType }),
+            page: 1,
+            limit: 1000
+          }
+
+          const responses = await Promise.allSettled(
+            sourceSchools.map((school) =>
+              axios.get(`${process.env.NEXT_PUBLIC_SRS_SERVER}/admin/parents`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                },
+                params: {
+                  ...requestParams,
+                  schoolId: school._id
+                }
+              })
+            )
+          )
+
+          const mergedParentMap = new Map<string, Parent>()
+
+          responses.forEach((result) => {
+            if (result.status !== 'fulfilled') {
+              return
+            }
+
+            const payload: ParentsApiPayload = result.value?.data?.data || {}
+            const schoolParents = Array.isArray(payload.parents) ? payload.parents : []
+
+            schoolParents.forEach((parent) => {
+              if (parent?._id && !mergedParentMap.has(parent._id)) {
+                mergedParentMap.set(parent._id, parent)
+              }
+            })
+          })
+
+          const combinedParents = Array.from(mergedParentMap.values())
+          const filteredParents = combinedParents.filter((parent) => matchesSearchTerm(parent, search))
+          const combinedTotal = filteredParents.length
+          const combinedTotalPages = Math.max(1, Math.ceil(combinedTotal / limit))
+          const safePage = Math.min(Math.max(page, 1), combinedTotalPages)
+          const startIndex = (safePage - 1) * limit
+          const paginatedParents = filteredParents.slice(startIndex, startIndex + limit)
+
+          setParents(paginatedParents)
+          setCurrentPage(safePage)
+          setTotalPages(combinedTotalPages)
+          setTotalParents(combinedTotal)
+          setPageSize(limit)
+          return
+        }
+      }
+
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SRS_SERVER}/admin/parents`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -133,7 +239,9 @@ export default function ManageParentsPage() {
       })
 
       if (response.data.success && response.data.data) {
-        const { parents: parentsData, pagination } = response.data.data
+        const payload: ParentsApiPayload = response.data.data
+        const parentsData = Array.isArray(payload.parents) ? payload.parents : []
+        const pagination = payload.pagination || {}
 
         setParents(parentsData || [])
 
@@ -157,6 +265,10 @@ export default function ManageParentsPage() {
     }
   }
 
+  useEffect(() => {
+    fetchParentsRef.current = fetchParents
+  }, [fetchParents])
+
   // Handle pagination
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
@@ -173,7 +285,7 @@ export default function ManageParentsPage() {
   const debouncedSearch = useCallback(
     debounce((search: string, gender: string, parentType: string, schoolId: string) => {
       setCurrentPage(1)
-      fetchParents(1, pageSize, search, gender, parentType, schoolId)
+      fetchParentsRef.current?.(1, pageSize, search, gender, parentType, schoolId)
     }, 500),
     [pageSize]
   )
