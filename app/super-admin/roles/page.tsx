@@ -79,8 +79,13 @@ interface CreatePermissionForm {
 const isValidPermission = (permission: unknown): permission is Permission => {
   if (!permission || typeof permission !== "object") return false
 
+<<<<<<< HEAD
   const p = permission as Permission
   return typeof p._id === "string" && typeof p.name === "string"
+=======
+  const candidate = permission as Partial<Permission>
+  return typeof candidate._id === "string" && typeof candidate.name === "string"
+>>>>>>> super_scheduleJob_timeSet
 }
 
 export default function RolesPermissions() {
@@ -467,7 +472,12 @@ export default function RolesPermissions() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedRole(role)
+                                setSelectedRole({
+                                  ...role,
+                                  permissions: Array.isArray(role.permissions)
+                                    ? role.permissions.filter(isValidPermission)
+                                    : [],
+                                })
                                 setIsEditRoleDialogOpen(true)
                               }}
                               disabled={role.isSystemRole}
