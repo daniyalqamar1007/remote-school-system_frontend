@@ -76,6 +76,7 @@ interface CreatePermissionForm {
   description: string
 }
 
+<<<<<<< HEAD
 const isValidPermission = (permission: unknown): permission is Permission => {
   if (!permission || typeof permission !== "object") return false
 
@@ -86,6 +87,39 @@ const isValidPermission = (permission: unknown): permission is Permission => {
   const candidate = permission as Partial<Permission>
   return typeof candidate._id === "string" && typeof candidate.name === "string"
 >>>>>>> super_scheduleJob_timeSet
+=======
+const normalizePermission = (permission: any): Permission | null => {
+  if (!permission || typeof permission !== 'object' || !permission._id) return null
+
+  return {
+    _id: String(permission._id),
+    name: String(permission.name ?? 'Unnamed Permission'),
+    resource: String(permission.resource ?? ''),
+    action: String(permission.action ?? ''),
+    description: String(permission.description ?? ''),
+    createdAt: String(permission.createdAt ?? new Date().toISOString()),
+  }
+}
+
+const normalizeRole = (role: any): Role | null => {
+  if (!role || typeof role !== 'object' || !role._id) return null
+
+  const safePermissions = Array.isArray(role.permissions)
+    ? role.permissions
+        .map(normalizePermission)
+        .filter((permission: Permission | null): permission is Permission => permission !== null)
+    : []
+
+  return {
+    _id: String(role._id),
+    name: String(role.name ?? 'Unnamed Role'),
+    description: String(role.description ?? ''),
+    permissions: safePermissions,
+    isSystemRole: Boolean(role.isSystemRole),
+    createdAt: String(role.createdAt ?? new Date().toISOString()),
+    updatedAt: String(role.updatedAt ?? new Date().toISOString()),
+  }
+>>>>>>> merge_admin_features
 }
 
 export default function RolesPermissions() {
@@ -141,6 +175,7 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
+<<<<<<< HEAD
         const rolesData = Array.isArray(data) ? data : data?.data ?? []
         const normalizedRoles = (Array.isArray(rolesData) ? rolesData : []).map((role) => ({
           ...role,
@@ -150,6 +185,13 @@ export default function RolesPermissions() {
         }))
 
         setRoles(normalizedRoles)
+=======
+        const list = Array.isArray(data) ? data : data?.data ?? []
+        const safeRoles = (Array.isArray(list) ? list : [])
+          .map(normalizeRole)
+          .filter((role: Role | null): role is Role => role !== null)
+        setRoles(safeRoles)
+>>>>>>> merge_admin_features
       } else {
         toast.error("Failed to fetch roles")
       }
@@ -166,9 +208,17 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/permissions`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
+<<<<<<< HEAD
         const permissionsData = Array.isArray(data) ? data : data?.data ?? []
         const normalizedPermissions = (Array.isArray(permissionsData) ? permissionsData : []).filter(isValidPermission)
         setPermissions(normalizedPermissions)
+=======
+        const list = Array.isArray(data) ? data : data?.data ?? []
+        const safePermissions = (Array.isArray(list) ? list : [])
+          .map(normalizePermission)
+          .filter((permission: Permission | null): permission is Permission => permission !== null)
+        setPermissions(safePermissions)
+>>>>>>> merge_admin_features
       } else {
         toast.error("Failed to fetch permissions")
       }

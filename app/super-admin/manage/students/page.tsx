@@ -17,7 +17,11 @@ import axios from 'axios'
 import AddStudentModal from './Add-students/AddStudents'
 import { activities } from '@/lib/activities'
 import { addActivity } from '@/lib/actitivityFunctions'
+<<<<<<< HEAD
 import { downloadTemplate } from '../../../../lib/downloadTemplate'
+=======
+// import { downloadTemplate } from '@/lib/downloadTemplate'
+>>>>>>> merge_admin_features
 import * as XLSX from 'xlsx'
 
 // Simple debounce function
@@ -1162,7 +1166,11 @@ export default function ManageStudentsPage() {
           <div className="space-y-4">
             <Button type="button" variant="outline" onClick={async () => {
               try {
+<<<<<<< HEAD
                 await downloadTemplate('admin/students/template', 'student_bulk_upload_template.csv')
+=======
+                // await downloadTemplate('admin/students/template', 'student_bulk_upload_template.csv');
+>>>>>>> merge_admin_features
                 toast({ title: 'Success', description: 'Template downloaded successfully' });
               } catch (e: any) {
                 toast({ title: 'Error', description: e?.message || 'Failed to download template', variant: 'destructive' });
