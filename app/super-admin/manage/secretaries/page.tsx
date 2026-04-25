@@ -1,6 +1,10 @@
 // "use client"
 
 // import React, { useState, useEffect, useCallback } from 'react'
+<<<<<<< HEAD
+=======
+// import { useRouter } from 'next/navigation'
+>>>>>>> fix_searchBars+remove_nurse
 // import { Button } from "@/components/ui/button"
 // import { Input } from "@/components/ui/input"
 // import { Label } from "@/components/ui/label"
@@ -52,6 +56,17 @@
 // const API = process.env.NEXT_PUBLIC_SRS_SERVER
 
 // export default function SuperAdminSecretariesPage() {
+<<<<<<< HEAD
+=======
+//   const router = useRouter()
+
+//   useEffect(() => {
+//     router.replace('/super-admin/dashboard')
+//   }, [router])
+
+//   return null
+
+>>>>>>> fix_searchBars+remove_nurse
 //   const [secretaries, setSecretaries] = useState<Secretary[]>([])
 //   const [schools, setSchools] = useState<School[]>([])
 //   const [loading, setLoading] = useState(true)

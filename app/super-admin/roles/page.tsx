@@ -57,7 +57,7 @@ interface Role {
   _id: string
   name: string
   description: string
-  permissions: Permission[]
+  permissions: Array<Permission | null>
   isSystemRole: boolean
   createdAt: string
   updatedAt: string
@@ -123,6 +123,12 @@ export default function RolesPermissions() {
     "create", "read", "update", "delete", "manage", "view", 
     "export", "import", "approve", "reject", "assign", "unassign"
   ]
+
+  const validPermissions = (role?: Role | null): Permission[] => {
+    return (role?.permissions || []).filter(
+      (permission): permission is Permission => Boolean(permission && permission._id && permission.name)
+    )
+  }
 
   useEffect(() => {
     fetchRoles()
@@ -203,10 +209,11 @@ export default function RolesPermissions() {
     if (!selectedRole) return
 
     try {
+      const normalizedPermissions = validPermissions(selectedRole)
       const updateData = {
         name: selectedRole.name,
         description: selectedRole.description,
-        permissions: selectedRole.permissions.map(p => p._id)
+        permissions: normalizedPermissions.map(p => p._id)
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles/${selectedRole._id}`, {
@@ -310,13 +317,16 @@ export default function RolesPermissions() {
       if (permission) {
         setSelectedRole(prev => prev ? {
           ...prev,
-          permissions: [...prev.permissions, permission]
+          permissions: [
+            ...validPermissions(prev),
+            ...(!validPermissions(prev).some(p => p._id === permission._id) ? [permission] : [])
+          ]
         } : null)
       }
     } else {
       setSelectedRole(prev => prev ? {
         ...prev,
-        permissions: prev.permissions.filter(p => p._id !== permissionId)
+        permissions: validPermissions(prev).filter(p => p._id !== permissionId)
       } : null)
     }
   }
@@ -440,14 +450,14 @@ export default function RolesPermissions() {
                         <TableCell>{role.description}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {role.permissions.slice(0, 3).map((permission) => (
+                            {validPermissions(role).slice(0, 3).map((permission) => (
                               <Badge key={permission._id} variant="secondary" className="text-xs">
                                 {permission.name}
                               </Badge>
                             ))}
-                            {role.permissions.length > 3 && (
+                            {validPermissions(role).length > 3 && (
                               <Badge variant="secondary" className="text-xs">
-                                +{role.permissions.length - 3} more
+                                +{validPermissions(role).length - 3} more
                               </Badge>
                             )}
                           </div>
@@ -665,7 +675,7 @@ export default function RolesPermissions() {
                       <div key={permission._id} className="flex items-center space-x-2">
                         <Checkbox
                           id={`edit-permission-${permission._id}`}
-                          checked={selectedRole.permissions.some(p => p._id === permission._id)}
+                          checked={validPermissions(selectedRole).some(p => p._id === permission._id)}
                           onCheckedChange={(checked) => handleEditPermissionToggle(permission._id, checked as boolean)}
                         />
                         <div className="flex-1">

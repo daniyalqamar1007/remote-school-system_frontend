@@ -13,8 +13,7 @@ import {
   BarChart3,
   RefreshCw,
   UserPlus,
-  Building2,
-  User
+  Building2
 } from "lucide-react"
 import axios from "axios"
 import { toast } from 'sonner'
@@ -283,13 +282,6 @@ export default function SuperAdminDashboard() {
             colorClass="text-purple-600"
           />
           <KpiCard
-            title="Nurses"
-            value={overview?.overview?.totalNurses || 0}
-            subtitle={`${overview?.overview?.activeNurses || 0} active`}
-            icon={User}
-            colorClass="text-pink-600"
-          />
-          <KpiCard
             title="Parents"
             value={overview?.overview?.totalParents || 0}
             subtitle={`${overview?.overview?.activeParents || 0} active`}
@@ -358,7 +350,9 @@ export default function SuperAdminDashboard() {
             <CardContent>
               <div className="space-y-3">
                 {overview?.distributions?.usersByRole && overview.distributions.usersByRole.length > 0 ? (
-                  overview.distributions.usersByRole.map((role, idx) => (
+                  overview.distributions.usersByRole
+                    .filter((role) => !['NURSE', 'SECRETARY'].includes((role.role || '').toUpperCase()))
+                    .map((role, idx) => (
                     <div key={`${role.role}-${idx}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-2">
                         <div className={`h-3 w-3 rounded-full ${idx === 0 ? 'bg-blue-500' : idx === 1 ? 'bg-green-500' : idx === 2 ? 'bg-purple-500' : idx === 3 ? 'bg-orange-500' : 'bg-pink-500'
@@ -371,7 +365,7 @@ export default function SuperAdminDashboard() {
                         </span>
                       </div>
                     </div>
-                  ))
+                    ))
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">No role data available</p>
                 )}
@@ -592,21 +586,6 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">Create, edit, and manage teachers accounts and permissions</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200 border-l-4 border-l-pink-500"
-          onClick={() => router.push('/super-admin/manage/nurses')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-base font-semibold">Nurses Management</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center">
-              <Users className="h-5 w-5 text-pink-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Create, edit, and manage nurses accounts and permissions</p>
           </CardContent>
         </Card>
 

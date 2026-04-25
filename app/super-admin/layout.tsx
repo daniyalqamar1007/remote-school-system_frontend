@@ -77,9 +77,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         { name: "Admins", href: "/super-admin/manage/admins" },
         { name: "Students", href: "/super-admin/manage/students" },
         { name: "Parents", href: "/super-admin/manage/parents" },
-        { name: "Teachers", href: "/super-admin/manage/teachers" },
-        { name: "Nurses", href: "/super-admin/manage/nurses" },
-        { name: "Secretaries", href: "/super-admin/manage/secretaries" }
+        { name: "Teachers", href: "/super-admin/manage/teachers" }
         // { name: "Users", href: "/super-admin/manage/users" }
       ]
     },
@@ -89,8 +87,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     { name: "Data Management", href: "/super-admin/data-management", icon: Database },
     { name: "Audit Logs", href: "/super-admin/audit-logs", icon: Activity },
     { name: "System Analytics", href: "/super-admin/analytics", icon: BarChart3 },
-    { name: "Reports", href: "/super-admin/reports", icon: FileText },
-    { name: "Report Builder", href: "/super-admin/report-builder", icon: BarChart3 },
+    // { name: "Reports", href: "/super-admin/reports", icon: FileText },
+    // { name: "Report Builder", href: "/super-admin/report-builder", icon: BarChart3 },
     { name: "Scheduled Jobs", href: "/super-admin/scheduled-jobs", icon: Clock },
     { name: "Discipline Management", href: "/super-admin/discipline", icon: AlertTriangle },
     { name: "Lesson Plan Approval", href: "/super-admin/lesson-plan-approval", icon: FileCheck },
