@@ -1747,6 +1747,18 @@ export const studentsApi = {
     return handleResponse(response)
   },
 
+  getByStudentId: async (studentId: string) => {
+    const response = await fetch(`${API_BASE_URL}/student/by-student-id/${encodeURIComponent(studentId)}`, {
+      headers: getAuthHeaders(),
+    })
+
+    if (response.status === 404) {
+      return null
+    }
+
+    return handleResponse(response)
+  },
+
   getById: async (id: string) => {
     const response = await fetch(`${API_BASE_URL}/student/${id}`, {
       headers: getAuthHeaders(),
@@ -1963,6 +1975,30 @@ export const feeApi = {
     return handleResponse(response)
   },
 
+  activatePolicy: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies/${id}/activate`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  deletePolicy: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  restorePolicy: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/policies/${id}/restore`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
   upsertDiscount: async (payload: any) => {
     const response = await fetch(`${API_BASE_URL}/fee/discounts`, {
       method: 'POST',
@@ -1978,6 +2014,22 @@ export const feeApi = {
       if (v != null && v !== '') params.set(k, String(v))
     })
     const response = await fetch(`${API_BASE_URL}/fee/discounts?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  deactivateDiscount: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/discounts/${id}/deactivate`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  reactivateDiscount: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/discounts/${id}/reactivate`, {
+      method: 'POST',
       headers: getAuthHeaders(),
     })
     return handleResponse(response)
@@ -2012,6 +2064,24 @@ export const feeApi = {
     return handleResponse(response)
   },
 
+  mockPayment: async (payload: any) => {
+    const response = await fetch(`${API_BASE_URL}/fee/payments/mock`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
+  reversePayment: async (paymentId: string, payload: { reason?: string } = {}) => {
+    const response = await fetch(`${API_BASE_URL}/fee/payments/${paymentId}/reverse`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+    return handleResponse(response)
+  },
+
   manualClearance: async (installmentId: string, payload: any) => {
     const response = await fetch(`${API_BASE_URL}/fee/installments/${installmentId}/manual-clearance`, {
       method: 'POST',
@@ -2021,7 +2091,7 @@ export const feeApi = {
     return handleResponse(response)
   },
 
-  runReminders: async (payload: { schoolId?: string } = {}) => {
+  runReminders: async (payload: { schoolId?: string; idempotencyKey?: string } = {}) => {
     const response = await fetch(`${API_BASE_URL}/fee/reminders/run`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -2030,9 +2100,101 @@ export const feeApi = {
     return handleResponse(response)
   },
 
-  getMyInstallments: async (academicYear?: string) => {
+  getInstallmentPayments: async (installmentId: string, filters: Record<string, string | number | boolean | undefined> = {}) => {
     const params = new URLSearchParams()
-    if (academicYear) params.set('academicYear', academicYear)
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/payments/installment/${installmentId}?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getStudentPayments: async (studentId: string, filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/payments/student/${studentId}?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getPaymentReceipt: async (paymentId: string) => {
+    const response = await fetch(`${API_BASE_URL}/fee/payments/${paymentId}/receipt`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getReportSummary: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/reports/summary?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getReportAging: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/reports/aging?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getClassCollections: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/reports/class-collections?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getMonthlyCollections: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/reports/monthly-collections?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getDashboardReport: async (filters: Record<string, string | number | boolean | undefined> = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/reports/dashboard?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getMyInstallments: async (filters: {
+    academicYear?: string
+    status?: string
+    dueFrom?: string
+    dueTo?: string
+  } = {}) => {
+    const params = new URLSearchParams()
+    if (filters.academicYear) params.set('academicYear', filters.academicYear)
+    if (filters.status) params.set('status', filters.status)
+    if (filters.dueFrom) params.set('dueFrom', filters.dueFrom)
+    if (filters.dueTo) params.set('dueTo', filters.dueTo)
     const response = await fetch(`${API_BASE_URL}/fee/my/installments?${params}`, {
       headers: getAuthHeaders(),
     })
@@ -2043,6 +2205,17 @@ export const feeApi = {
     const params = new URLSearchParams()
     if (academicYear) params.set('academicYear', academicYear)
     const response = await fetch(`${API_BASE_URL}/fee/my/summary?${params}`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+
+  getMyPayments: async (filters: { academicYear?: string; page?: string | number; limit?: string | number; sortBy?: string; sortOrder?: string } = {}) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v != null && v !== '') params.set(k, String(v))
+    })
+    const response = await fetch(`${API_BASE_URL}/fee/my/payments?${params}`, {
       headers: getAuthHeaders(),
     })
     return handleResponse(response)
