@@ -1,6 +1,6 @@
-// "use client"
-
-// import React, { useCallback, useEffect, useMemo, useState } from "react"
+export default function NursesPage() {
+  return null
+}
 // import { useRouter } from "next/navigation"
 // import { format } from "date-fns"
 // import PhoneInput from "react-phone-input-2"

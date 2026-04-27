@@ -76,18 +76,6 @@ interface CreatePermissionForm {
   description: string
 }
 
-<<<<<<< HEAD
-const isValidPermission = (permission: unknown): permission is Permission => {
-  if (!permission || typeof permission !== "object") return false
-
-<<<<<<< HEAD
-  const p = permission as Permission
-  return typeof p._id === "string" && typeof p.name === "string"
-=======
-  const candidate = permission as Partial<Permission>
-  return typeof candidate._id === "string" && typeof candidate.name === "string"
->>>>>>> super_scheduleJob_timeSet
-=======
 const normalizePermission = (permission: any): Permission | null => {
   if (!permission || typeof permission !== 'object' || !permission._id) return null
 
@@ -119,7 +107,6 @@ const normalizeRole = (role: any): Role | null => {
     createdAt: String(role.createdAt ?? new Date().toISOString()),
     updatedAt: String(role.updatedAt ?? new Date().toISOString()),
   }
->>>>>>> merge_admin_features
 }
 
 export default function RolesPermissions() {
@@ -175,23 +162,11 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-<<<<<<< HEAD
-        const rolesData = Array.isArray(data) ? data : data?.data ?? []
-        const normalizedRoles = (Array.isArray(rolesData) ? rolesData : []).map((role) => ({
-          ...role,
-          permissions: Array.isArray(role?.permissions)
-            ? role.permissions.filter(isValidPermission)
-            : [],
-        }))
-
-        setRoles(normalizedRoles)
-=======
         const list = Array.isArray(data) ? data : data?.data ?? []
         const safeRoles = (Array.isArray(list) ? list : [])
           .map(normalizeRole)
           .filter((role: Role | null): role is Role => role !== null)
         setRoles(safeRoles)
->>>>>>> merge_admin_features
       } else {
         toast.error("Failed to fetch roles")
       }
@@ -208,17 +183,11 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/permissions`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-<<<<<<< HEAD
-        const permissionsData = Array.isArray(data) ? data : data?.data ?? []
-        const normalizedPermissions = (Array.isArray(permissionsData) ? permissionsData : []).filter(isValidPermission)
-        setPermissions(normalizedPermissions)
-=======
         const list = Array.isArray(data) ? data : data?.data ?? []
         const safePermissions = (Array.isArray(list) ? list : [])
           .map(normalizePermission)
           .filter((permission: Permission | null): permission is Permission => permission !== null)
         setPermissions(safePermissions)
->>>>>>> merge_admin_features
       } else {
         toast.error("Failed to fetch permissions")
       }

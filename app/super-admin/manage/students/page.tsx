@@ -17,11 +17,7 @@ import axios from 'axios'
 import AddStudentModal from './Add-students/AddStudents'
 import { activities } from '@/lib/activities'
 import { addActivity } from '@/lib/actitivityFunctions'
-<<<<<<< HEAD
-import { downloadTemplate } from '../../../../lib/downloadTemplate'
-=======
-// import { downloadTemplate } from '@/lib/downloadTemplate'
->>>>>>> merge_admin_features
+import { downloadTemplate } from '@/lib/downloadTemplate'
 import * as XLSX from 'xlsx'
 
 // Simple debounce function
