@@ -77,13 +77,13 @@ export default function WelcomePage() {
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100">
                 <Image
                   src="/Logo/srs.png"
-                  alt="SRS Logo"
+                  alt="RSS Logo"
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               </div>
-              <span className="text-xl font-bold text-gray-900">SRS</span>
+              <span className="text-xl font-bold text-gray-900">RSS</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/login">
@@ -106,7 +106,7 @@ export default function WelcomePage() {
         <div className="text-center max-w-4xl mx-auto">
           <Badge className="mb-4 bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">
             <Sparkles className="w-3 h-3 mr-1" />
-            Welcome to Student Revelation System
+            Welcome to Remote School System
           </Badge>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
             Empowering Education
@@ -200,7 +200,7 @@ export default function WelcomePage() {
               Ready to Transform Your School?
             </h2>
             <p className="text-lg sm:text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of schools already using SRS to streamline their operations
+              Join thousands of schools already using RSS to streamline their operations
               and enhance student success.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -232,12 +232,12 @@ export default function WelcomePage() {
               <div className="flex items-center gap-2 mb-4">
                 <Image
                   src="/Logo/srs.png"
-                  alt="SRS Logo"
+                  alt="RSS Logo"
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-full object-cover"
                 />
-                <span className="text-lg font-bold text-gray-900">SRS</span>
+                <span className="text-lg font-bold text-gray-900">RSS</span>
               </div>
               <p className="text-gray-600 text-sm">
                 Empowering educational institutions with comprehensive management solutions.
@@ -272,7 +272,7 @@ export default function WelcomePage() {
           </div>
           <div className="mt-8 pt-8 border-t border-gray-200 text-center">
             <p className="text-gray-600 text-sm">
-              © {new Date().getFullYear()} Student Revelation System. All rights reserved.
+              © {new Date().getFullYear()} Remote School System. All rights reserved.
             </p>
           </div>
         </div>

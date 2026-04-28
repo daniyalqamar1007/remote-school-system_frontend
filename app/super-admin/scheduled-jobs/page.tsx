@@ -73,14 +73,156 @@ const jobTypes = [
   { value: "report_generation", label: "Report Generation", icon: Calendar }
 ]
 
-const cronPresets = [
-  { label: "Every Hour", value: "0 0 * * * *" },
-  { label: "Daily at 2 AM", value: "0 0 2 * * *" },
-  { label: "Weekly (Sunday 2 AM)", value: "0 0 2 * * 0" },
-  { label: "Monthly (1st day 2 AM)", value: "0 0 2 1 * *" },
-  { label: "Every 30 minutes", value: "0 */30 * * * *" },
-  { label: "Weekdays at 6 AM", value: "0 0 6 * * 1-5" }
+type ScheduleType = "hourly" | "daily" | "weekly" | "monthly" | "custom"
+
+const weekDays = [
+  { value: "0", label: "Sunday" },
+  { value: "1", label: "Monday" },
+  { value: "2", label: "Tuesday" },
+  { value: "3", label: "Wednesday" },
+  { value: "4", label: "Thursday" },
+  { value: "5", label: "Friday" },
+  { value: "6", label: "Saturday" },
 ]
+
+const defaultScheduleTime = "02:00"
+
+function padNumber(value: string | number) {
+  return String(value).padStart(2, "0")
+}
+
+function formatTimeLabel(timeValue: string) {
+  const [hourText = "0", minuteText = "0"] = timeValue.split(":")
+  const hour = Number(hourText)
+  const minute = Number(minuteText)
+  const isPm = hour >= 12
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12
+  return `${displayHour}:${padNumber(minute)} ${isPm ? "PM" : "AM"}`
+}
+
+function buildCronExpression(formData: {
+  scheduleType: ScheduleType
+  scheduleTime: string
+  scheduleMinute: string
+  scheduleDayOfWeek: string
+  scheduleDayOfMonth: string
+  cronExpression: string
+}) {
+  switch (formData.scheduleType) {
+    case "hourly":
+      return `0 ${Math.min(59, Math.max(0, Number(formData.scheduleMinute) || 0))} * * * *`
+    case "daily": {
+      const [hourText = "0", minuteText = "0"] = formData.scheduleTime.split(":")
+      const hour = Math.min(23, Math.max(0, Number(hourText) || 0))
+      const minute = Math.min(59, Math.max(0, Number(minuteText) || 0))
+      return `0 ${minute} ${hour} * * *`
+    }
+    case "weekly": {
+      const [hourText = "0", minuteText = "0"] = formData.scheduleTime.split(":")
+      const hour = Math.min(23, Math.max(0, Number(hourText) || 0))
+      const minute = Math.min(59, Math.max(0, Number(minuteText) || 0))
+      const dayOfWeek = Math.min(6, Math.max(0, Number(formData.scheduleDayOfWeek) || 0))
+      return `0 ${minute} ${hour} * * ${dayOfWeek}`
+    }
+    case "monthly": {
+      const [hourText = "0", minuteText = "0"] = formData.scheduleTime.split(":")
+      const hour = Math.min(23, Math.max(0, Number(hourText) || 0))
+      const minute = Math.min(59, Math.max(0, Number(minuteText) || 0))
+      const dayOfMonth = Math.min(31, Math.max(1, Number(formData.scheduleDayOfMonth) || 1))
+      return `0 ${minute} ${hour} ${dayOfMonth} * *`
+    }
+    case "custom":
+      return formData.cronExpression.trim()
+    default:
+      return ""
+  }
+}
+
+function formatScheduleSummary(formData: {
+  scheduleType: ScheduleType
+  scheduleTime: string
+  scheduleMinute: string
+  scheduleDayOfWeek: string
+  scheduleDayOfMonth: string
+}) {
+  switch (formData.scheduleType) {
+    case "hourly":
+      return `Every hour at minute ${padNumber(Math.min(59, Math.max(0, Number(formData.scheduleMinute) || 0)))}`
+    case "daily":
+      return `Daily at ${formatTimeLabel(formData.scheduleTime)}`
+    case "weekly": {
+      const day = weekDays.find((item) => item.value === formData.scheduleDayOfWeek)?.label || "Sunday"
+      return `Weekly on ${day} at ${formatTimeLabel(formData.scheduleTime)}`
+    }
+    case "monthly":
+      return `Monthly on day ${Math.min(31, Math.max(1, Number(formData.scheduleDayOfMonth) || 1))} at ${formatTimeLabel(formData.scheduleTime)}`
+    case "custom":
+      return "Custom cron expression"
+    default:
+      return ""
+  }
+}
+
+function inferScheduleFromCron(cronExpression: string) {
+  const trimmed = cronExpression.trim()
+
+  const hourlyMatch = trimmed.match(/^0\s+(\d{1,2})\s+\*\s+\*\s+\*\s+\*$/)
+  if (hourlyMatch) {
+    return {
+      scheduleType: "hourly" as ScheduleType,
+      scheduleTime: defaultScheduleTime,
+      scheduleMinute: padNumber(Math.min(59, Math.max(0, Number(hourlyMatch[1]) || 0))),
+      scheduleDayOfWeek: "0",
+      scheduleDayOfMonth: "1",
+      cronExpression: "",
+    }
+  }
+
+  const dailyMatch = trimmed.match(/^0\s+(\d{1,2})\s+(\d{1,2})\s+\*\s+\*\s+\*$/)
+  if (dailyMatch) {
+    return {
+      scheduleType: "daily" as ScheduleType,
+      scheduleTime: `${padNumber(Math.min(23, Math.max(0, Number(dailyMatch[2]) || 0)))}:${padNumber(Math.min(59, Math.max(0, Number(dailyMatch[1]) || 0)))}`,
+      scheduleMinute: "0",
+      scheduleDayOfWeek: "0",
+      scheduleDayOfMonth: "1",
+      cronExpression: "",
+    }
+  }
+
+  const weeklyMatch = trimmed.match(/^0\s+(\d{1,2})\s+(\d{1,2})\s+\*\s+\*\s+([0-6])$/)
+  if (weeklyMatch) {
+    return {
+      scheduleType: "weekly" as ScheduleType,
+      scheduleTime: `${padNumber(Math.min(23, Math.max(0, Number(weeklyMatch[2]) || 0)))}:${padNumber(Math.min(59, Math.max(0, Number(weeklyMatch[1]) || 0)))}`,
+      scheduleMinute: "0",
+      scheduleDayOfWeek: weeklyMatch[3],
+      scheduleDayOfMonth: "1",
+      cronExpression: "",
+    }
+  }
+
+  const monthlyMatch = trimmed.match(/^0\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+\*\s+\*$/)
+  if (monthlyMatch) {
+    return {
+      scheduleType: "monthly" as ScheduleType,
+      scheduleTime: `${padNumber(Math.min(23, Math.max(0, Number(monthlyMatch[2]) || 0)))}:${padNumber(Math.min(59, Math.max(0, Number(monthlyMatch[1]) || 0)))}`,
+      scheduleMinute: "0",
+      scheduleDayOfWeek: "0",
+      scheduleDayOfMonth: String(Math.min(31, Math.max(1, Number(monthlyMatch[3]) || 1))),
+      cronExpression: "",
+    }
+  }
+
+  return {
+    scheduleType: "custom" as ScheduleType,
+    scheduleTime: defaultScheduleTime,
+    scheduleMinute: "0",
+    scheduleDayOfWeek: "0",
+    scheduleDayOfMonth: "1",
+    cronExpression: trimmed,
+  }
+}
 
 export default function ScheduledJobsPage() {
   const [jobs, setJobs] = useState<ScheduledJob[]>([])
@@ -93,6 +235,11 @@ export default function ScheduledJobsPage() {
     name: "",
     type: "",
     description: "",
+    scheduleType: "daily" as ScheduleType,
+    scheduleTime: defaultScheduleTime,
+    scheduleMinute: "0",
+    scheduleDayOfWeek: "0",
+    scheduleDayOfMonth: "1",
     cronExpression: "",
     isActive: true,
     parameters: "{}"
@@ -130,11 +277,12 @@ export default function ScheduledJobsPage() {
   const handleSave = async () => {
     try {
       setSaving(true)
+      const cronExpression = buildCronExpression(formData)
       const payload = {
         name: formData.name,
         type: formData.type,
         description: formData.description,
-        cronExpression: formData.cronExpression,
+        cronExpression,
         isActive: formData.isActive,
         parameters: formData.parameters ? (() => { try { return JSON.parse(formData.parameters) } catch { return {} } })() : {},
       }
@@ -191,12 +339,13 @@ export default function ScheduledJobsPage() {
   }
 
   const handleEdit = (job: ScheduledJob) => {
+    const inferredSchedule = inferScheduleFromCron(job.cronExpression)
     setEditingJob(job)
     setFormData({
       name: job.name,
       type: job.type,
       description: job.description,
-      cronExpression: job.cronExpression,
+      ...inferredSchedule,
       isActive: job.isActive,
       parameters: JSON.stringify(job.parameters || {}, null, 2)
     })
@@ -208,6 +357,11 @@ export default function ScheduledJobsPage() {
       name: "",
       type: "",
       description: "",
+      scheduleType: "daily",
+      scheduleTime: defaultScheduleTime,
+      scheduleMinute: "0",
+      scheduleDayOfWeek: "0",
+      scheduleDayOfMonth: "1",
       cronExpression: "",
       isActive: true,
       parameters: "{}"
@@ -230,6 +384,9 @@ export default function ScheduledJobsPage() {
     
     return statusConfig[status as keyof typeof statusConfig] || statusConfig.stopped
   }
+
+  const generatedCronExpression = buildCronExpression(formData)
+  const scheduleSummary = formatScheduleSummary(formData)
 
   if (loading) {
     return (
@@ -299,7 +456,12 @@ export default function ScheduledJobsPage() {
                           {jobTypes.find(t => t.value === job.type)?.label || job.type}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{job.cronExpression}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">{formatScheduleSummary(inferScheduleFromCron(job.cronExpression))}</div>
+                          <div className="font-mono text-xs text-muted-foreground">{job.cronExpression}</div>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadge(job.status).variant}>
                           {job.status}
@@ -410,53 +572,114 @@ export default function ScheduledJobsPage() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 rounded-lg border p-4">
               <div className="space-y-2">
-                <Label htmlFor="cronExpression">Cron Expression *</Label>
-                <Input
-                  id="cronExpression"
-                  value={formData.cronExpression}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cronExpression: e.target.value }))}
-                  placeholder="0 0 2 * * *"
-                  className="w-full font-mono"
-                />
+                <Label htmlFor="scheduleType">Schedule Frequency *</Label>
+                <Select
+                  value={formData.scheduleType}
+                  onValueChange={(value: ScheduleType) => setFormData(prev => ({
+                    ...prev,
+                    scheduleType: value,
+                    cronExpression: value === "custom" ? prev.cronExpression : ""
+                  }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a schedule" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hourly">Hourly</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">Common patterns:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {cronPresets.map((preset) => (
-                    <Button
-                      key={preset.value}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, cronExpression: preset.value }))}
-                      className="text-xs justify-start h-auto py-2 px-3"
-                      type="button"
-                    >
-                      <div className="text-left">
-                        <div className="font-medium">{preset.label}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{preset.value}</div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="parameters">Parameters (JSON)</Label>
-              <Textarea
-                id="parameters"
-                value={formData.parameters}
-                onChange={(e) => setFormData(prev => ({ ...prev, parameters: e.target.value }))}
-                placeholder='{"key": "value", "retries": 3}'
-                rows={4}
-                className="w-full font-mono text-sm resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional JSON configuration for the job. Leave empty if not needed.
-              </p>
+              {formData.scheduleType === "hourly" && (
+                <div className="space-y-2">
+                  <Label htmlFor="scheduleMinute">Run at minute *</Label>
+                  <Input
+                    id="scheduleMinute"
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={formData.scheduleMinute}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scheduleMinute: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+              )}
+
+              {formData.scheduleType === "daily" && (
+                <div className="space-y-2">
+                  <Label htmlFor="scheduleTime">Run time *</Label>
+                  <Input
+                    id="scheduleTime"
+                    type="time"
+                    value={formData.scheduleTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scheduleTime: e.target.value }))}
+                  />
+                </div>
+              )}
+
+              {formData.scheduleType === "weekly" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduleDayOfWeek">Day of week *</Label>
+                    <Select
+                      value={formData.scheduleDayOfWeek}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, scheduleDayOfWeek: value }))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose a day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weekDays.map((day) => (
+                          <SelectItem key={day.value} value={day.value}>
+                            {day.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weeklyTime">Run time *</Label>
+                    <Input
+                      id="weeklyTime"
+                      type="time"
+                      value={formData.scheduleTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, scheduleTime: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.scheduleType === "monthly" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduleDayOfMonth">Day of month *</Label>
+                    <Input
+                      id="scheduleDayOfMonth"
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={formData.scheduleDayOfMonth}
+                      onChange={(e) => setFormData(prev => ({ ...prev, scheduleDayOfMonth: e.target.value }))}
+                      placeholder="1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="monthlyTime">Run time *</Label>
+                    <Input
+                      id="monthlyTime"
+                      type="time"
+                      value={formData.scheduleTime}
+                      onChange={(e) => setFormData(prev => ({ ...prev, scheduleTime: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              )}
+
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t">
@@ -488,7 +711,7 @@ export default function ScheduledJobsPage() {
                 <Button
                   type="button"
                   onClick={handleSave}
-                  disabled={saving || !formData.name || !formData.cronExpression || !formData.type}
+                  disabled={saving || !formData.name || !formData.type || !generatedCronExpression}
                   className="min-w-[100px]"
                 >
                   {saving ? (

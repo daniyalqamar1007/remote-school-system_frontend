@@ -158,7 +158,7 @@ function ResetPasswordForm() {
             <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md border border-gray-100">
               <Image
                 src="/Logo/srs.png"
-                alt="SRS Logo"
+                alt="RSS Logo"
                 width={56}
                 height={56}
                 className="w-14 h-14 rounded-full object-cover"
@@ -191,7 +191,7 @@ function ResetPasswordForm() {
           <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md border border-gray-100">
             <Image
               src="/Logo/srs.png"
-              alt="SRS Logo"
+              alt="RSS Logo"
               width={56}
               height={56}
               className="w-14 h-14 rounded-full object-cover"

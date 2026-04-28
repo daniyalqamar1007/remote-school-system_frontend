@@ -47,6 +47,23 @@ interface School {
   name: string
 }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesTeacherSearch = (teacher: Teacher, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    teacher.firstName || '',
+    teacher.lastName || '',
+    teacher.email || '',
+    teacher.employeeId || '',
+    teacher.schoolId?.name || ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function SuperAdminTeacherRolesPage() {
   const router = useRouter()
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -87,6 +104,10 @@ export default function SuperAdminTeacherRolesPage() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken')
+      const normalizedSearch = normalizeSearchText(search)
+      const hasMultiWordSearch = normalizedSearch.includes(' ')
+      // Use first token for backend query and apply full tokenized matching in frontend.
+      const apiSearchQuery = hasMultiWordSearch ? normalizedSearch.split(' ')[0] : normalizedSearch
 
       if (!token) {
         toast.error('Authentication required. Please log in again.')
@@ -99,8 +120,8 @@ export default function SuperAdminTeacherRolesPage() {
         limit
       }
 
-      if (search.trim()) {
-        params.search = search.trim()
+      if (apiSearchQuery) {
+        params.search = apiSearchQuery
       }
 
       if (schoolId && schoolId !== 'all' && schoolId.trim()) {
@@ -117,12 +138,23 @@ export default function SuperAdminTeacherRolesPage() {
       if (response.data.success && response.data.data) {
         const { teachers: teachersData, pagination } = response.data.data
 
-        setTeachers(teachersData || [])
+        const parsedTeachers = teachersData || []
+        const filteredTeachers = normalizedSearch
+          ? parsedTeachers.filter((teacher: Teacher) => matchesTeacherSearch(teacher, normalizedSearch))
+          : parsedTeachers
+
+        setTeachers(filteredTeachers)
 
         // Update pagination state
-        setCurrentPage(pagination.currentPage || page)
-        setTotalPages(pagination.totalPages || 1)
-        setTotalTeachers(pagination.totalCount || 0)
+        if (hasMultiWordSearch) {
+          setCurrentPage(1)
+          setTotalPages(1)
+          setTotalTeachers(filteredTeachers.length)
+        } else {
+          setCurrentPage(pagination.currentPage || page)
+          setTotalPages(pagination.totalPages || 1)
+          setTotalTeachers(pagination.totalCount || 0)
+        }
         setPageSize(pagination.limit || limit)
       } else {
         setTeachers([])
@@ -309,14 +341,14 @@ export default function SuperAdminTeacherRolesPage() {
                     <TableHead className="hidden md:table-cell">Employee ID</TableHead>
                     <TableHead className="hidden lg:table-cell">School</TableHead>
                     <TableHead className="text-center">Eligible for Sports</TableHead>
-                    <TableHead className="text-center">Eligible for IEP</TableHead>
+                    {/* <TableHead className="text-center">Eligible for IEP</TableHead> */}
                     <TableHead className="text-center">Eligible for Counselor</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-12">
+                      <TableCell colSpan={6} className="py-12">
                         <div className="flex items-center justify-center">
                           <div className="flex items-center gap-3 text-gray-600">
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -327,7 +359,7 @@ export default function SuperAdminTeacherRolesPage() {
                     </TableRow>
                   ) : teachers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                         No teachers found
                       </TableCell>
                     </TableRow>
@@ -360,7 +392,7 @@ export default function SuperAdminTeacherRolesPage() {
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        {/* <TableCell className="text-center">
                           <div className="flex items-center justify-center">
                             <Switch
                               checked={teacher.eligible_for_iep || false}
@@ -370,7 +402,7 @@ export default function SuperAdminTeacherRolesPage() {
                               disabled={updatingTeacherId === teacher._id}
                             />
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center">
                             <Switch

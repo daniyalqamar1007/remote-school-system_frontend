@@ -89,6 +89,24 @@ const grades = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Gra
 
 type School = { _id: string; name: string; code: string }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesStudentSearch = (student: Student, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    student.studentId || '',
+    student.firstName || '',
+    student.lastName || '',
+    student.email || '',
+    student.phone || '',
+    student.schoolId?.name || ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function ManageStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
@@ -150,6 +168,10 @@ export default function ManageStudentsPage() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken')
+      const normalizedSearch = normalizeSearchText(search)
+      const hasMultiWordSearch = normalizedSearch.includes(' ')
+      // Use first token for backend search and apply full tokenized matching in frontend.
+      const apiSearchQuery = hasMultiWordSearch ? normalizedSearch.split(' ')[0] : normalizedSearch
 
       console.log('token for students', token)
       
@@ -158,8 +180,8 @@ export default function ManageStudentsPage() {
         limit
       };
       
-      if (search.trim()) {
-        params.search = search.trim();
+      if (apiSearchQuery) {
+        params.search = apiSearchQuery;
       }
       
       if (grade && grade !== 'all') {
@@ -207,12 +229,22 @@ export default function ManageStudentsPage() {
 
         console.log('processedStudents', processedStudents)
         
-        setStudents(processedStudents);
+        const filteredStudents = normalizedSearch
+          ? processedStudents.filter((student: Student) => matchesStudentSearch(student, normalizedSearch))
+          : processedStudents;
+
+        setStudents(filteredStudents);
         
         // Update pagination state
-        setCurrentPage(pagination.currentPage || page);
-        setTotalPages(pagination.totalPages || 1);
-        setTotalStudents(pagination.totalCount || 0);
+        if (hasMultiWordSearch) {
+          setCurrentPage(1);
+          setTotalPages(1);
+          setTotalStudents(filteredStudents.length);
+        } else {
+          setCurrentPage(pagination.currentPage || page);
+          setTotalPages(pagination.totalPages || 1);
+          setTotalStudents(pagination.totalCount || 0);
+        }
         setPageSize(pagination.limit || limit);
       } else {
         setStudents([]);
@@ -843,7 +875,7 @@ export default function ManageStudentsPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search students by name, email, or student ID..."
+              placeholder="Search students by name, email, or student ID (supports spaces)..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
@@ -1130,7 +1162,11 @@ export default function ManageStudentsPage() {
           <div className="space-y-4">
             <Button type="button" variant="outline" onClick={async () => {
               try {
-                await downloadTemplate('admin/students/template', 'student_bulk_upload_template.csv');
+<<<<<<< HEAD
+                await downloadTemplate('admin/students/template', 'student_bulk_upload_template.csv')
+=======
+                // await downloadTemplate('admin/students/template', 'student_bulk_upload_template.csv');
+>>>>>>> merge_admin_features
                 toast({ title: 'Success', description: 'Template downloaded successfully' });
               } catch (e: any) {
                 toast({ title: 'Error', description: e?.message || 'Failed to download template', variant: 'destructive' });

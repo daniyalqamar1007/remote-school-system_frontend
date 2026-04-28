@@ -66,6 +66,24 @@ interface School {
   schoolCode?: string
 }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesTeacherSearch = (teacher: Teacher, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    teacher.employeeId || '',
+    teacher.firstName || '',
+    teacher.lastName || '',
+    teacher.email || '',
+    teacher.phone || '',
+    teacher.schoolId?.name || ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function TeachersTable() {
   const router = useRouter()
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -107,10 +125,14 @@ export default function TeachersTable() {
       setLoading(true)
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('authToken')
       const base = `${process.env.NEXT_PUBLIC_SRS_SERVER}/admin/teachers`
+      const normalizedQuery = normalizeSearchText(query)
+      const hasMultiWordQuery = normalizedQuery.includes(' ')
+      // Use first token for backend query, then apply full tokenized matching in frontend.
+      const apiSearchQuery = hasMultiWordQuery ? normalizedQuery.split(' ')[0] : normalizedQuery
       const params = new URLSearchParams()
       params.set('page', String(page))
       params.set('limit', String(pageLimit))
-      if (query.trim()) params.set('search', query.trim())
+      if (apiSearchQuery) params.set('search', apiSearchQuery)
       if (schoolId && schoolId.trim()) params.set('schoolId', schoolId.trim())
       const url = `${base}?${params.toString()}`
       const response = await axios.get(url, {
@@ -121,10 +143,19 @@ export default function TeachersTable() {
       })
       const list = response.data?.data?.teachers || []
       const pg = response.data?.data?.pagination || {}
-      setTeachers(Array.isArray(list) ? list : [])
-      setCurrentPage(pg.currentPage || page)
-      setTotalPages(pg.totalPages || 1)
-      setTotalCount(pg.totalCount || 0)
+      const parsedList: Teacher[] = Array.isArray(list) ? list : []
+      const filteredList = normalizedQuery ? parsedList.filter((teacher) => matchesTeacherSearch(teacher, normalizedQuery)) : parsedList
+
+      setTeachers(filteredList)
+      if (hasMultiWordQuery) {
+        setCurrentPage(1)
+        setTotalPages(1)
+        setTotalCount(filteredList.length)
+      } else {
+        setCurrentPage(pg.currentPage || page)
+        setTotalPages(pg.totalPages || 1)
+        setTotalCount(pg.totalCount || 0)
+      }
       setLimit(pg.limit || pageLimit)
     } catch (error) {
       console.error("Error fetching teachers:", error)
@@ -322,7 +353,7 @@ export default function TeachersTable() {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <Input
-          placeholder="Search teachers by email..."
+          placeholder="Search teachers by name, email, or employee ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full sm:max-w-sm"

@@ -77,9 +77,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         { name: "Admins", href: "/super-admin/manage/admins" },
         { name: "Students", href: "/super-admin/manage/students" },
         { name: "Parents", href: "/super-admin/manage/parents" },
-        { name: "Teachers", href: "/super-admin/manage/teachers" },
-        { name: "Nurses", href: "/super-admin/manage/nurses" },
-        { name: "Secretaries", href: "/super-admin/manage/secretaries" }
+        { name: "Teachers", href: "/super-admin/manage/teachers" }
         // { name: "Users", href: "/super-admin/manage/users" }
       ]
     },
@@ -89,8 +87,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     { name: "Data Management", href: "/super-admin/data-management", icon: Database },
     { name: "Audit Logs", href: "/super-admin/audit-logs", icon: Activity },
     { name: "System Analytics", href: "/super-admin/analytics", icon: BarChart3 },
-    { name: "Reports", href: "/super-admin/reports", icon: FileText },
-    { name: "Report Builder", href: "/super-admin/report-builder", icon: BarChart3 },
+    // { name: "Reports", href: "/super-admin/reports", icon: FileText },
+    // { name: "Report Builder", href: "/super-admin/report-builder", icon: BarChart3 },
     { name: "Scheduled Jobs", href: "/super-admin/scheduled-jobs", icon: Clock },
     { name: "Discipline Management", href: "/super-admin/discipline", icon: AlertTriangle },
     { name: "Lesson Plan Approval", href: "/super-admin/lesson-plan-approval", icon: FileCheck },
@@ -121,17 +119,17 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         { name: "Reports", href: "/super-admin/clubs/reports" }
       ]
     },
-    { name: "Access Control", href: "/super-admin/access-control", icon: Shield },
-    { name: "Session Management", href: "/super-admin/session-management", icon: Users },
-    { name: "System Monitoring", href: "/super-admin/system-monitoring", icon: Activity },
+    // { name: "Access Control", href: "/super-admin/access-control", icon: Shield },
+    // { name: "Session Management", href: "/super-admin/session-management", icon: Users },
+    // { name: "System Monitoring", href: "/super-admin/system-monitoring", icon: Activity },
     { name: "System Settings", href: "/super-admin/system-settings", icon: Globe },
     { name: "Email Templates", href: "/super-admin/email-templates", icon: Mail },
     { name: "Roles & Permissions", href: "/super-admin/roles", icon: Shield },
     { name: "Academic Terms", href: "/super-admin/academic-terms", icon: Calendar },
     { name: "Rollover Management", href: "/super-admin/rollover-management", icon: RotateCw },
-     { name: "System Alerts", href: "/super-admin/system-alerts", icon: Bell },
-    { name: "Certificate Management", href: "/super-admin/certificate-management", icon: ShieldCheck },
-    { name: "Integration Management", href: "/super-admin/integration-management", icon: Plug },
+    // { name: "System Alerts", href: "/super-admin/system-alerts", icon: Bell },
+    // { name: "Certificate Management", href: "/super-admin/certificate-management", icon: ShieldCheck },
+    // { name: "Integration Management", href: "/super-admin/integration-management", icon: Plug },
     { name: "Demo Videos", href: "/super-admin/demo-videos", icon: Video },
   ]
 

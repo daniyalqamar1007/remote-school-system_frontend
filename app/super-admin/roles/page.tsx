@@ -57,7 +57,7 @@ interface Role {
   _id: string
   name: string
   description: string
-  permissions: Permission[]
+  permissions: Array<Permission | null>
   isSystemRole: boolean
   createdAt: string
   updatedAt: string
@@ -74,6 +74,39 @@ interface CreatePermissionForm {
   resource: string
   action: string
   description: string
+}
+
+const normalizePermission = (permission: any): Permission | null => {
+  if (!permission || typeof permission !== 'object' || !permission._id) return null
+
+  return {
+    _id: String(permission._id),
+    name: String(permission.name ?? 'Unnamed Permission'),
+    resource: String(permission.resource ?? ''),
+    action: String(permission.action ?? ''),
+    description: String(permission.description ?? ''),
+    createdAt: String(permission.createdAt ?? new Date().toISOString()),
+  }
+}
+
+const normalizeRole = (role: any): Role | null => {
+  if (!role || typeof role !== 'object' || !role._id) return null
+
+  const safePermissions = Array.isArray(role.permissions)
+    ? role.permissions
+        .map(normalizePermission)
+        .filter((permission: Permission | null): permission is Permission => permission !== null)
+    : []
+
+  return {
+    _id: String(role._id),
+    name: String(role.name ?? 'Unnamed Role'),
+    description: String(role.description ?? ''),
+    permissions: safePermissions,
+    isSystemRole: Boolean(role.isSystemRole),
+    createdAt: String(role.createdAt ?? new Date().toISOString()),
+    updatedAt: String(role.updatedAt ?? new Date().toISOString()),
+  }
 }
 
 export default function RolesPermissions() {
@@ -112,6 +145,12 @@ export default function RolesPermissions() {
     "export", "import", "approve", "reject", "assign", "unassign"
   ]
 
+  const validPermissions = (role?: Role | null): Permission[] => {
+    return (role?.permissions || []).filter(
+      (permission): permission is Permission => Boolean(permission && permission._id && permission.name)
+    )
+  }
+
   useEffect(() => {
     fetchRoles()
     fetchPermissions()
@@ -123,7 +162,11 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setRoles(Array.isArray(data) ? data : data?.data ?? [])
+        const list = Array.isArray(data) ? data : data?.data ?? []
+        const safeRoles = (Array.isArray(list) ? list : [])
+          .map(normalizeRole)
+          .filter((role: Role | null): role is Role => role !== null)
+        setRoles(safeRoles)
       } else {
         toast.error("Failed to fetch roles")
       }
@@ -140,7 +183,11 @@ export default function RolesPermissions() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/permissions`, { headers: authHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setPermissions(Array.isArray(data) ? data : data?.data ?? [])
+        const list = Array.isArray(data) ? data : data?.data ?? []
+        const safePermissions = (Array.isArray(list) ? list : [])
+          .map(normalizePermission)
+          .filter((permission: Permission | null): permission is Permission => permission !== null)
+        setPermissions(safePermissions)
       } else {
         toast.error("Failed to fetch permissions")
       }
@@ -181,10 +228,11 @@ export default function RolesPermissions() {
     if (!selectedRole) return
 
     try {
+      const normalizedPermissions = validPermissions(selectedRole)
       const updateData = {
         name: selectedRole.name,
         description: selectedRole.description,
-        permissions: selectedRole.permissions.map(p => p._id)
+        permissions: normalizedPermissions.map(p => p._id)
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SRS_SERVER}/super-admin/roles/${selectedRole._id}`, {
@@ -288,13 +336,16 @@ export default function RolesPermissions() {
       if (permission) {
         setSelectedRole(prev => prev ? {
           ...prev,
-          permissions: [...prev.permissions, permission]
+          permissions: [
+            ...validPermissions(prev),
+            ...(!validPermissions(prev).some(p => p._id === permission._id) ? [permission] : [])
+          ]
         } : null)
       }
     } else {
       setSelectedRole(prev => prev ? {
         ...prev,
-        permissions: prev.permissions.filter(p => p._id !== permissionId)
+        permissions: validPermissions(prev).filter(p => p._id !== permissionId)
       } : null)
     }
   }
@@ -418,14 +469,14 @@ export default function RolesPermissions() {
                         <TableCell>{role.description}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {role.permissions.slice(0, 3).map((permission) => (
+                            {validPermissions(role).slice(0, 3).map((permission) => (
                               <Badge key={permission._id} variant="secondary" className="text-xs">
                                 {permission.name}
                               </Badge>
                             ))}
-                            {role.permissions.length > 3 && (
+                            {validPermissions(role).length > 3 && (
                               <Badge variant="secondary" className="text-xs">
-                                +{role.permissions.length - 3} more
+                                +{validPermissions(role).length - 3} more
                               </Badge>
                             )}
                           </div>
@@ -450,7 +501,12 @@ export default function RolesPermissions() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedRole(role)
+                                setSelectedRole({
+                                  ...role,
+                                  permissions: Array.isArray(role.permissions)
+                                    ? role.permissions.filter(isValidPermission)
+                                    : [],
+                                })
                                 setIsEditRoleDialogOpen(true)
                               }}
                               disabled={role.isSystemRole}
@@ -638,7 +694,7 @@ export default function RolesPermissions() {
                       <div key={permission._id} className="flex items-center space-x-2">
                         <Checkbox
                           id={`edit-permission-${permission._id}`}
-                          checked={selectedRole.permissions.some(p => p._id === permission._id)}
+                          checked={validPermissions(selectedRole).some(p => p._id === permission._id)}
                           onCheckedChange={(checked) => handleEditPermissionToggle(permission._id, checked as boolean)}
                         />
                         <div className="flex-1">

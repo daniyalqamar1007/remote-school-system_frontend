@@ -1,11 +1,15 @@
 node_modules
 next-env.d.ts
 .next
+.next-build
 
 # Test and debug scripts
 test-scripts/
 *debug*
-*temp*
+temp/
+tmp/
+*.tmp
+*.temp
 *.test.*
 *.spec.*
 

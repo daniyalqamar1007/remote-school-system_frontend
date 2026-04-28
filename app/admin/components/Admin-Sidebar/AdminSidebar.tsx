@@ -89,16 +89,6 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }: { isSidebarOpen: bool
       icon: UserPlus,
     },
     {
-      name: "Manage Nurses",
-      href: "/admin/manage-nurses",
-      icon: UserPlus,
-    },
-    {
-      name: "Secretary",
-      href: "/admin/secretary",
-      icon: UserPlus,
-    },
-    {
       name: "Honor Roll Management",
       href: "/admin/honor-roll",
       icon: Award,
@@ -269,12 +259,12 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }: { isSidebarOpen: bool
           <Link href="/admin/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image
               src="/Logo/srs.png"
-              alt="SRS Admin Logo"
+              alt="RSS Admin Logo"
               width={44}
               height={32}
               className="h-12 w-12  rounded-full"
             />
-            <span className="text-xl font-semibold">SRS Admin</span>
+            <span className="text-xl font-semibold">RSS Admin</span>
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
             <X className="h-6 w-6" />

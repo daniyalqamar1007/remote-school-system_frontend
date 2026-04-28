@@ -24,7 +24,7 @@ export default function NotFound() {
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100">
                 <Image
                   src="/Logo/srs.png"
-                  alt="SRS Logo"
+                  alt="RSS Logo"
                   width={40}
                   height={40}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"

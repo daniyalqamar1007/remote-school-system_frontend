@@ -82,6 +82,24 @@ interface Pagination {
   totalPages: number
 }
 
+const normalizeSearchText = (value: string) => value.toLowerCase().replace(/\s+/g, ' ').trim()
+
+const matchesUserSearch = (user: User, query: string) => {
+  const normalizedQuery = normalizeSearchText(query)
+  if (!normalizedQuery) return true
+
+  const searchableText = normalizeSearchText([
+    user.firstName || '',
+    user.lastName || '',
+    user.email || '',
+    user.role || '',
+    user.schoolName || '',
+    typeof user.schoolId === 'object' ? (user.schoolId?.name || '') : ''
+  ].join(' '))
+
+  return normalizedQuery.split(' ').every((term) => searchableText.includes(term))
+}
+
 export default function PasswordManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -137,15 +155,21 @@ export default function PasswordManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
+      const normalizedSearch = normalizeSearchText(debouncedSearchTerm)
+      const hasMultiWordSearch = normalizedSearch.includes(' ')
+      const apiSearchQuery = hasMultiWordSearch ? normalizedSearch.split(' ')[0] : normalizedSearch
+      const requestPage = hasMultiWordSearch ? 1 : pagination.page
+      const requestLimit = hasMultiWordSearch ? Math.max(pagination.limit, 100) : pagination.limit
+
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
+        page: requestPage.toString(),
+        limit: requestLimit.toString(),
       })
       
       // Add search parameter if provided
-      if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
-        params.append('search', debouncedSearchTerm.trim())
-        console.log('🔍 Frontend: Adding search param:', debouncedSearchTerm.trim())
+      if (apiSearchQuery) {
+        params.append('search', apiSearchQuery)
+        console.log('🔍 Frontend: Adding search param:', apiSearchQuery)
       }
       
       // Add role parameter if not 'all'
@@ -172,25 +196,31 @@ export default function PasswordManagement() {
         if (result.success && result.data) {
           const usersData = result.data.users || []
           const paginationData = result.data.pagination || {}
-          
-          setUsers(usersData)
+
+          const filteredUsers = normalizedSearch
+            ? usersData.filter((user: User) => matchesUserSearch(user, normalizedSearch))
+            : usersData
+
+          if (hasMultiWordSearch) {
+            const localStart = (pagination.page - 1) * pagination.limit
+            const localEnd = localStart + pagination.limit
+            setUsers(filteredUsers.slice(localStart, localEnd))
+          } else {
+            setUsers(filteredUsers)
+          }
           
           // Update pagination state with correct values
           // Handle both naming conventions: page/currentPage, total/totalCount
-          setPagination(prev => ({
-            ...prev,
-            total: paginationData.total || paginationData.totalCount || 0,
-            totalPages: paginationData.totalPages || 0,
-            page: paginationData.page || paginationData.currentPage || prev.page,
-            limit: paginationData.limit || prev.limit,
-          }))
-        } else {
-          // Fallback for different response structure
-          const usersData = result.users || result.data?.users || []
-          const paginationData = result.pagination || result.data?.pagination || {}
-          
-          setUsers(usersData)
-          if (paginationData && (paginationData.total !== undefined || paginationData.totalCount !== undefined || paginationData.totalPages !== undefined)) {
+          if (hasMultiWordSearch) {
+            const computedTotal = filteredUsers.length
+            const computedTotalPages = Math.ceil(computedTotal / pagination.limit)
+            setPagination(prev => ({
+              ...prev,
+              total: computedTotal,
+              totalPages: computedTotalPages,
+              page: computedTotalPages > 0 ? Math.min(prev.page, computedTotalPages) : 1,
+            }))
+          } else {
             setPagination(prev => ({
               ...prev,
               total: paginationData.total || paginationData.totalCount || 0,
@@ -198,6 +228,39 @@ export default function PasswordManagement() {
               page: paginationData.page || paginationData.currentPage || prev.page,
               limit: paginationData.limit || prev.limit,
             }))
+          }
+        } else {
+          // Fallback for different response structure
+          const usersData = result.users || result.data?.users || []
+          const paginationData = result.pagination || result.data?.pagination || {}
+
+          const filteredUsers = normalizedSearch
+            ? usersData.filter((user: User) => matchesUserSearch(user, normalizedSearch))
+            : usersData
+
+          if (hasMultiWordSearch) {
+            const localStart = (pagination.page - 1) * pagination.limit
+            const localEnd = localStart + pagination.limit
+            setUsers(filteredUsers.slice(localStart, localEnd))
+            const computedTotal = filteredUsers.length
+            const computedTotalPages = Math.ceil(computedTotal / pagination.limit)
+            setPagination(prev => ({
+              ...prev,
+              total: computedTotal,
+              totalPages: computedTotalPages,
+              page: computedTotalPages > 0 ? Math.min(prev.page, computedTotalPages) : 1,
+            }))
+          } else {
+            setUsers(filteredUsers)
+            if (paginationData && (paginationData.total !== undefined || paginationData.totalCount !== undefined || paginationData.totalPages !== undefined)) {
+              setPagination(prev => ({
+                ...prev,
+                total: paginationData.total || paginationData.totalCount || 0,
+                totalPages: paginationData.totalPages || 0,
+                page: paginationData.page || paginationData.currentPage || prev.page,
+                limit: paginationData.limit || prev.limit,
+              }))
+            }
           }
         }
       } else {
@@ -334,9 +397,7 @@ export default function PasswordManagement() {
     { value: 'ADMIN', label: 'Admin' },
     { value: 'TEACHER', label: 'Teacher' },
     { value: 'STUDENT', label: 'Student' },
-    { value: 'PARENT', label: 'Parent' },
-    { value: 'NURSE', label: 'Nurse' },
-    { value: 'SECRETARY', label: 'Secretary' }
+    { value: 'PARENT', label: 'Parent' }
   ]
 
   return (

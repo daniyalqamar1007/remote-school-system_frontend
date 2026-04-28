@@ -116,8 +116,8 @@ export default function SuperAdminMobileSidebar({
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex items-center gap-x-3">
-          <Image src={'/Logo/srs.png'} alt='srs logo' height={32} width={32} className="h-8 w-8 rounded-full" />
-          <span className="text-xl font-semibold text-gray-900">SRS Super Admin</span>
+          <Image src={'/Logo/srs.png'} alt='rss logo' height={32} width={32} className="h-8 w-8 rounded-full" />
+          <span className="text-xl font-semibold text-gray-900">RSS Super Admin</span>
         </div>
         
         {/* User info on mobile */}

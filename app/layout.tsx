@@ -6,8 +6,8 @@ import { Toaster } from '@/components/ui/sonner'
 import AxiosInterceptor from '@/components/AxiosInterceptor'
 
 export const metadata: Metadata = {
-  title: 'School Revelation System',
-  description: 'srs',
+  title: 'Remote School System',
+  description: 'rss',
   icons: {
     icon: [
       { url: '/Logo/srs.png', sizes: '32x32', type: 'image/png' },

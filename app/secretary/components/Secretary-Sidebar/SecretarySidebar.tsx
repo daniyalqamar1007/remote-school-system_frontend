@@ -209,12 +209,12 @@ const SecretarySidebar = ({ isSidebarOpen, setIsSidebarOpen }: { isSidebarOpen: 
           <Link href="/secretary/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image
               src="/Logo/srs.png"
-              alt="SRS Secretary Logo"
+              alt="RSS Secretary Logo"
               width={44}
               height={32}
               className="h-12 w-12  rounded-full"
             />
-            <span className="text-xl font-semibold">SRS Secretary</span>
+            <span className="text-xl font-semibold">RSS Secretary</span>
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
             <X className="h-6 w-6" />
