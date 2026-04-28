@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "NEXT_DIST_DIR=.next-build next build",
-    "start": "NEXT_DIST_DIR=.next-build next start",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
-    "deploy": "NEXT_DIST_DIR=.next-build next build && aws s3 sync out/ s3://srs-fe/ --delete"
+    "deploy": "next build && aws s3 sync out/ s3://srs-fe/ --delete"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
